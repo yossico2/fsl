@@ -14,6 +14,7 @@
 // Ensure libtinyxml2-dev is installed on your PetaLinux rootfs
 #include <tinyxml2.h>
 
+#include "icd.h"
 #include "config.h"
 #include "udp_server.h"
 #include "uds_server.h"
@@ -96,6 +97,15 @@ int main()
             int n = udp.receive(buffer, sizeof(buffer), &sender_addr);
             if (n > 0)
             {
+                if (n < FSL_GSL_HEADER_SIZE)
+                {
+                    std::cerr << "Received UDP packet too small for FSL_GSL_HEADER_SIZE: " << n << " bytes" << std::endl;
+                    continue;
+                }
+
+                // lilo:TODO: rout to different UDS based on msg_opcode
+                FslGslHeader *header = reinterpret_cast<FslGslHeader *>(buffer);
+
                 uds.send(buffer, n);
             }
         }
