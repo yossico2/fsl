@@ -20,7 +20,7 @@ else()
     message(STATUS "Compiling for Ubuntu/Linux")
 endif()
 
-    add_executable(fsl src/main.cpp src/config.cpp src/uds_server.cpp src/udp_server.cpp)
+add_executable(fsl src/main.cpp src/config.cpp src/uds_server.cpp src/udp_server.cpp src/fsl.cpp)
 
 target_link_libraries(fsl PRIVATE tinyxml2)
 
