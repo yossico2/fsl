@@ -45,12 +45,22 @@ bool UdsSocket::bindSocket()
 
 ssize_t UdsSocket::send(const void *buffer, size_t length)
 {
-    return sendto(fd_, buffer, length, 0, (struct sockaddr *)&target_addr_, sizeof(target_addr_));
+    ssize_t sent = sendto(fd_, buffer, length, 0, (struct sockaddr *)&target_addr_, sizeof(target_addr_));
+    if (sent < 0)
+    {
+        perror("[ERROR] UDS sendto failed");
+    }
+    return sent;
 }
 
 ssize_t UdsSocket::receive(void *buffer, size_t length)
 {
-    return recvfrom(fd_, buffer, length, 0, NULL, NULL);
+    ssize_t received = recvfrom(fd_, buffer, length, 0, NULL, NULL);
+    if (received < 0)
+    {
+        perror("[ERROR] UDS recvfrom failed");
+    }
+    return received;
 }
 
 int UdsSocket::getFd() const

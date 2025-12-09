@@ -2,6 +2,13 @@
 
 This project is a simple C++ application using CMake, designed to compile for either Ubuntu/Linux or PetaLinux.
 
+
+## Build requirements
+Install tinyxml2:
+```bash
+sudo apt-get install libtinyxml2-dev
+```
+
 ## Building for Ubuntu/Linux
 
 

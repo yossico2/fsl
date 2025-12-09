@@ -53,20 +53,31 @@ bool UdpServerSocket::bindSocket()
 
 ssize_t UdpServerSocket::send(const void *buffer, size_t length)
 {
-    return sendto(fd_, buffer, length, 0, (struct sockaddr *)&remote_addr_, sizeof(remote_addr_));
+    ssize_t sent = sendto(fd_, buffer, length, 0, (struct sockaddr *)&remote_addr_, sizeof(remote_addr_));
+    if (sent < 0)
+    {
+        perror("[ERROR] UDP sendto failed");
+    }
+    return sent;
 }
 
 ssize_t UdpServerSocket::receive(void *buffer, size_t length, sockaddr_in *sender_addr)
 {
     socklen_t sender_len = sizeof(sockaddr_in);
+    ssize_t received;
     if (sender_addr)
     {
-        return recvfrom(fd_, buffer, length, 0, (struct sockaddr *)sender_addr, &sender_len);
+        received = recvfrom(fd_, buffer, length, 0, (struct sockaddr *)sender_addr, &sender_len);
     }
     else
     {
-        return recvfrom(fd_, buffer, length, 0, NULL, NULL);
+        received = recvfrom(fd_, buffer, length, 0, NULL, NULL);
     }
+    if (received < 0)
+    {
+        perror("[ERROR] UDP recvfrom failed");
+    }
+    return received;
 }
 
 int UdpServerSocket::getFd() const
