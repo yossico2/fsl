@@ -17,8 +17,8 @@ int main()
 
     try
     {
-        App fsl("config.xml");
-        fsl.run();
+        App app("config.xml");
+        app.run();
     }
     catch (const std::exception &e)
     {
