@@ -1,5 +1,6 @@
 #include "config.h"
 #include <stdexcept>
+#include <iostream>
 
 // Include TinyXML-2 header
 // Ensure libtinyxml2-dev is installed on your PetaLinux rootfs
@@ -13,6 +14,7 @@ AppConfig load_config(const char *filename)
     XMLError result = doc.LoadFile(filename);
     if (result != XML_SUCCESS)
     {
+        std::cerr << "TinyXML2 error loading '" << filename << "': " << doc.ErrorStr() << " (code " << result << ")" << std::endl;
         throw std::runtime_error("Failed to load XML file. Check if file exists and is valid.");
     }
 
@@ -45,20 +47,43 @@ AppConfig load_config(const char *filename)
     XMLElement *uds_node = root->FirstChildElement("uds");
     if (uds_node)
     {
-        const char *my_path_text = uds_node->FirstChildElement("my_path")->GetText();
-        const char *target_path_text = uds_node->FirstChildElement("target_path")->GetText();
-        if (my_path_text)
-            config.uds_my_path = my_path_text;
-        else
-            throw std::runtime_error("Missing <my_path>");
-        if (target_path_text)
-            config.uds_target_path = target_path_text;
-        else
-            throw std::runtime_error("Missing <target_path>");
+        for (XMLElement *el = uds_node->FirstChildElement(); el != nullptr; el = el->NextSiblingElement())
+        {
+            std::string tag = el->Name();
+            if (tag == "server")
+            {
+                const char *path = el->GetText();
+                if (path)
+                    config.uds_servers.push_back(path);
+            }
+            else if (tag == "client")
+            {
+                const char *name = el->Attribute("name");
+                const char *path = el->GetText();
+                if (name && path)
+                    config.uds_clients[name] = path;
+            }
+        }
     }
     else
     {
         throw std::runtime_error("Missing <uds> section");
+    }
+
+    // --- Parse UL UDS Mapping ---
+    XMLElement *mapping_root = root->FirstChildElement("ul_uds_mapping");
+    if (mapping_root)
+    {
+        for (XMLElement *el = mapping_root->FirstChildElement("mapping"); el != nullptr; el = el->NextSiblingElement("mapping"))
+        {
+            int opcode = 0;
+            const char *uds_name = el->Attribute("uds");
+            el->QueryIntAttribute("opcode", &opcode);
+            if (uds_name && opcode > 0)
+            {
+                config.ul_uds_mapping[static_cast<uint16_t>(opcode)] = uds_name;
+            }
+        }
     }
 
     return config;

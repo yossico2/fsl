@@ -1,9 +1,9 @@
-#include "uds_server.h"
+#include "uds.h"
 #include <unistd.h>
 #include <cstring>
 #include <stdexcept>
 
-UdsServerSocket::UdsServerSocket(const std::string &my_path, const std::string &target_path)
+UdsSocket::UdsSocket(const std::string &my_path, const std::string &target_path)
     : fd_(-1), my_path_(my_path), target_path_(target_path)
 {
     memset(&server_addr_, 0, sizeof(server_addr_));
@@ -21,7 +21,7 @@ UdsServerSocket::UdsServerSocket(const std::string &my_path, const std::string &
     }
 }
 
-UdsServerSocket::~UdsServerSocket()
+UdsSocket::~UdsSocket()
 {
     if (fd_ != -1)
     {
@@ -33,7 +33,7 @@ UdsServerSocket::~UdsServerSocket()
     }
 }
 
-bool UdsServerSocket::bindSocket()
+bool UdsSocket::bindSocket()
 {
     unlink(my_path_.c_str());
     if (bind(fd_, (struct sockaddr *)&server_addr_, sizeof(server_addr_)) < 0)
@@ -43,22 +43,22 @@ bool UdsServerSocket::bindSocket()
     return true;
 }
 
-ssize_t UdsServerSocket::send(const void *buffer, size_t length)
+ssize_t UdsSocket::send(const void *buffer, size_t length)
 {
     return sendto(fd_, buffer, length, 0, (struct sockaddr *)&target_addr_, sizeof(target_addr_));
 }
 
-ssize_t UdsServerSocket::receive(void *buffer, size_t length)
+ssize_t UdsSocket::receive(void *buffer, size_t length)
 {
     return recvfrom(fd_, buffer, length, 0, NULL, NULL);
 }
 
-int UdsServerSocket::getFd() const
+int UdsSocket::getFd() const
 {
     return fd_;
 }
 
-const std::string &UdsServerSocket::getMyPath() const
+const std::string &UdsSocket::getMyPath() const
 {
     return my_path_;
 }

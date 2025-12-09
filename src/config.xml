@@ -2,12 +2,25 @@
 <config>
     <udp>
         <local_port>5000</local_port>
-        <remote_ip>192.168.1.10</remote_ip>
+        <remote_ip>127.0.0.1</remote_ip>
         <remote_port>6000</remote_port>
     </udp>
 
     <uds>
-        <my_path>/tmp/fsl.sock</my_path>
-        <target_path>/tmp/app.sock</target_path>
+        <!-- app1 -->
+        <server>/tmp/app1.fsl1.dl.high.sock</server>
+        <server>/tmp/app1.fsl1.dl.low.sock</server>
+        <client name="app1.ul">/tmp/app1.fsl1.ul.sock</client>
+        
+        <!-- app2 -->
+        <server>/tmp/app2.fsl1.dl.high.sock</server>
+        <server>/tmp/app2.fsl1.dl.low.sock</server>
+        <client name="app2.ul">/tmp/app2.fsl1.ul.sock</client>
     </uds>
+
+    <ul_uds_mapping>
+        <mapping opcode="1" uds="app1.ul" />
+        <mapping opcode="2" uds="app2.ul" />
+    </ul_uds_mapping>
+
 </config>

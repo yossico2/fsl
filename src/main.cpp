@@ -16,7 +16,7 @@ int main()
     signal(SIGINT, signal_handler);
     try
     {
-        App fsl("./config.xml");
+        App fsl("config.xml");
         fsl.run();
     }
     catch (const std::exception &e)

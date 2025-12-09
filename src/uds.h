@@ -3,11 +3,11 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
-class UdsServerSocket
+class UdsSocket
 {
 public:
-    UdsServerSocket(const std::string &my_path, const std::string &target_path);
-    ~UdsServerSocket();
+    UdsSocket(const std::string &my_path, const std::string &target_path);
+    ~UdsSocket();
 
     bool bindSocket();
     ssize_t send(const void *buffer, size_t length);
