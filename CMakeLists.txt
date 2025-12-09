@@ -20,7 +20,7 @@ else()
     message(STATUS "Compiling for Ubuntu/Linux")
 endif()
 
-add_executable(fsl src/main.cpp)
+add_executable(fsl src/main.cpp src/config.cpp)
 
 target_link_libraries(fsl PRIVATE tinyxml2)
 
