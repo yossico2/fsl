@@ -167,17 +167,21 @@ void App::run()
         if (entry.second.request)
             ctrl_apps.push_back(entry.first);
     }
+
     const size_t nfds = 1 + uds_count + ctrl_apps.size();
     std::vector<pollfd> fds(nfds);
+
     // UDP socket
     fds[0].fd = udp_.getFd();
     fds[0].events = POLLIN;
+
     // UDS server sockets
     for (size_t i = 0; i < uds_count; ++i)
     {
         fds[1 + i].fd = uds_servers_[i]->getFd();
         fds[1 + i].events = POLLIN;
     }
+
     // ctrl_uds_sockets_ (request only)
     for (size_t i = 0; i < ctrl_apps.size(); ++i)
     {
