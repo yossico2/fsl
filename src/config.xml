@@ -59,6 +59,11 @@
                 <path>/tmp/fcom_to_app1</path>
             </response>
         </app1>
+        <telemetry>
+            <request>
+                <path>/tmp/app1_telemetry</path>
+            </request>
+        </telemetry>
         <app2>
             <request>
                 <path>/tmp/app2_to_fcom</path>
@@ -68,12 +73,6 @@
                 <path>/tmp/fcom_to_app2</path>
             </response>
         </app2>
-        <tod>
-            <request>
-                <path>/tmp/app2_to_fcom</path>
-                <receive_buffer_size>1024</receive_buffer_size>
-            </request>
-        </tod>
         <app3>
             <request>
                 <path>/tmp/app3_to_fcom</path>
@@ -83,5 +82,11 @@
                 <path>/tmp/fcom_to_app3</path>
             </response>
         </app3>
+        <dynamic>
+            <request>
+                <path>/tmp/app3_dynamic</path>
+                <receive_buffer_size>1024</receive_buffer_size>
+            </request>
+        </dynamic>
     </ctrl_status_uds>
 </config>

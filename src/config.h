@@ -20,7 +20,7 @@
 #include <map>
 #include <cstdint>
 
-// Holds ctrl/status UDS paths for each app and tod
+// Holds ctrl/status UDS paths for each app
 struct CtrlUdsConfig
 {
     std::string request_path;

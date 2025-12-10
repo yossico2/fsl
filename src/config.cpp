@@ -93,7 +93,7 @@ AppConfig load_config(const char *filename)
         }
     }
 
-    // --- Parse ctrl/status UDS for each app/tod under <ctrl_status> ---
+    // --- Parse ctrl/status UDS for each app under <ctrl_status> ---
     XMLElement *ctrl_status_node = root->FirstChildElement("ctrl_status_uds");
     if (ctrl_status_node)
     {

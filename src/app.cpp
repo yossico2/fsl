@@ -115,7 +115,7 @@ App::App(const std::string &config_path)
         uds_clients_[name] = std::move(client);
     }
 
-    // Create ctrl/status UDS sockets for each app/tod
+    // Create ctrl/status UDS sockets for each app
     for (const auto &entry : config_.ctrl_uds)
     {
         const std::string &app_name = entry.first;

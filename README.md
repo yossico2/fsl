@@ -128,12 +128,12 @@ The system is configured via an XML file. Example:
                 <receive_buffer_size>1024</receive_buffer_size>
             </response>
         </app2>
-        <tod>
+        <dynamic>
             <request>
                 <path>/tmp/app2_to_fcom</path>
                 <receive_buffer_size>1024</receive_buffer_size>
             </request>
-        </tod>
+        </dynamic>
     </ctrl_status_uds>
 </config>
 ```
@@ -141,7 +141,7 @@ The system is configured via an XML file. Example:
 - `<udp>`: UDP socket configuration for FSL.
 - `<data_link_uds>`: UDS server sockets (downlink) and client sockets (uplink) for each app.
 - `<ul_uds_mapping>`: Maps message opcodes to UDS client names for routing uplink messages.
-- `<ctrl_status_uds>`: Contains ctrl/status UDS channels for each app or logical entity. Each child element (e.g., `<app1>`, `<app2>`, `<tod>`) defines request and/or response UDS sockets for control and status communication between the app and FSL. Each `<request>` or `<response>` can specify a `<path>` and an optional `<receive_buffer_size>`. This section is parsed dynamically, so you can add or remove app sections as needed.
+- `<ctrl_status_uds>`: Contains ctrl/status UDS channels for each app or logical entity. Each child element (e.g., `<app1>`, `<telemetry>`, `<app2>`, `<app3>`, `<dynamic>`) defines request and/or response UDS sockets for control and status communication between the app and FSL. Each `<request>` or `<response>` can specify a `<path>` and an optional `<receive_buffer_size>`. This section is parsed dynamically, so you can add or remove app sections as needed.
 
 ## Running the System
 
