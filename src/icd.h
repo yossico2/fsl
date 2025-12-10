@@ -84,3 +84,9 @@ typedef struct FslCtrlGeneralAckResponse
 {
     FslCtrlHeader header;
 } FslCtrlGeneralAckResponse;
+
+typedef struct FslDataLinkErrorResponse
+{
+    uint16_t opcode;                 ///< Original message opcode
+    FslDataLinkErrorCode error_code; ///< Error code
+} FslDataLinkErrorResponse;
