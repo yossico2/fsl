@@ -30,6 +30,8 @@
 #include <condition_variable>
 #include <vector>
 
+#include "ctrl_request.h"
+
 volatile sig_atomic_t App::shutdown_flag_ = 0;
 
 constexpr size_t CTRL_QUEUE_MAX_SIZE = 32; // Adjust as needed
@@ -286,7 +288,7 @@ void App::run()
                     FslGslHeader hdr;
                     hdr.msg_opcode = 0; // Downlink opcode
                     hdr.msg_length = n;
-                    hdr.msg_id = msg_id_counter++;
+                    hdr.msg_seq_id = msg_id_counter++;
                     memcpy(buffer, &hdr, sizeof(FslGslHeader));
                     ssize_t sent = udp_.send(buffer, n + sizeof(FslGslHeader));
                     if (sent < 0)

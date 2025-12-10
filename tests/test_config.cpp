@@ -12,7 +12,10 @@ TEST_CASE("Config parsing: minimal valid config", "[config]")
         <remote_port>5678</remote_port>
     </udp>
     <data_link_uds>
-        <server>/tmp/test1.sock</server>
+        <server>
+            <path>/tmp/test1.sock</path>
+            <receive_buffer_size>1024</receive_buffer_size>
+            </server>
         <client name="test.ul">/tmp/test2.sock</client>
     </data_link_uds>
     <ul_uds_mapping>

@@ -77,9 +77,9 @@ The system is configured via an XML file. Example:
 ```xml
 <config>
     <udp>
-        <local_port>5000</local_port>
+        <local_port>9910</local_port>
         <remote_ip>127.0.0.1</remote_ip>
-        <remote_port>6000</remote_port>
+        <remote_port>9010</remote_port>
     </udp>
     <data_link_uds>
         <!-- app1 -->
@@ -155,10 +155,10 @@ Build as described above, then run:
 
 ### UDP → UDS client
 
-Send a UDP packet to the FSL UDP port (e.g., 5000):
+Send a UDP packet to the FSL UDP port (e.g., 9910):
 
 ```bash
-echo -n -e '<binary-packet>' | socat - UDP:127.0.0.1:5000
+echo -n -e '<binary-packet>' | socat - UDP:127.0.0.1:9910
 ```
 Or use Python to send a packet with a specific opcode and payload.
 

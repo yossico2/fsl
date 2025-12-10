@@ -8,7 +8,7 @@ typedef struct FslGslHeader
 {
     uint16_t msg_opcode; ///< Message opcode (application-specific)
     uint16_t msg_length; ///< Payload length (bytes)
-    uint32_t msg_id;     ///< Unique message ID (monotonic)
+    uint32_t msg_seq_id; ///< Unique message ID (monotonic)
 } FslGslHeader;
 
 /// Size of FslGslHeader struct (for framing)

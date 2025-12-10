@@ -3,8 +3,6 @@
 #include <csignal>
 #include "app.h"
 
-#include "app.h"
-
 void signal_handler(int signum)
 {
     std::cout << "\nClosing application..." << std::endl;

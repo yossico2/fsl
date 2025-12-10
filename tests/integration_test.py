@@ -13,8 +13,8 @@ import threading
 def send_udp_to_fsl(opcode, payload, udp_ip, udp_port):
     """Simulate GSL: Send UDP packet to FSL with header and payload."""
     # Example header: opcode (uint16), length (uint16), id (uint32)
-    msg_id = 1
-    header = struct.pack("<HHI", opcode, len(payload), msg_id)
+    msg_seq_id = 1
+    header = struct.pack("<HHI", opcode, len(payload), msg_seq_id)
     packet = header + payload.encode()
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.sendto(packet, (udp_ip, udp_port))
@@ -52,8 +52,8 @@ def uds_receiver_thread(uds_path, result_container):
 
 def test_udp_to_uds():
     """Test: GSL sends UDP, FSL routes to correct UDS client."""
-    udp_ip = "127.0.0.1"
-    udp_port = 5000
+    fsl_udp_ip = "127.0.0.1"
+    fsl_udp_port = 9910
     uds_client_path = "/tmp/app1.fsl.ul.sock"
     opcode = 1
     payload = "hello_from_gsl"
@@ -63,7 +63,7 @@ def test_udp_to_uds():
     t.start()
     time.sleep(0.5)  # Give receiver time to bind
     print("Sending UDP to FSL...")
-    send_udp_to_fsl(opcode, payload, udp_ip, udp_port)
+    send_udp_to_fsl(opcode, payload, fsl_udp_ip, fsl_udp_port)
     t.join()
     received = result[0] if result else None
     assert received is not None, "No data received on UDS client socket"
@@ -72,13 +72,13 @@ def test_udp_to_uds():
 
 def test_uds_to_udp():
     """Test: App sends to UDS server, FSL routes to UDP (GSL)."""
-    udp_ip = "127.0.0.1"
-    udp_port = 6000
+    gcom_udp_ip = "127.0.0.1"
+    gcom_udp_port = 9010
     uds_server_path = "/tmp/app1.fsl.dl.high.sock"
     payload = "hello_from_app"
     # Start UDP receiver (GSL)
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.bind((udp_ip, udp_port))
+    s.bind((gcom_udp_ip, gcom_udp_port))
     s.settimeout(2)
     print("Sending to UDS server...")
     send_uds_to_fsl(uds_server_path, payload)

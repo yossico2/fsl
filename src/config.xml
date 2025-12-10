@@ -3,11 +3,11 @@
     <!-- fsl and gsl addr -->
     <udp>
         <!-- gsl port -->
-        <local_port>5000</local_port>
+        <local_port>9910</local_port>
         <!-- fsl host -->
         <remote_ip>127.0.0.1</remote_ip>
         <!-- fsl port -->
-        <remote_port>6000</remote_port>
+        <remote_port>9010</remote_port>
     </udp>
     <!-- data uds -->
     <data_link_uds>

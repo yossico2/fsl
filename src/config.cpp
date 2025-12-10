@@ -60,9 +60,6 @@ AppConfig load_config(const char *filename)
                 XMLElement *buf_el = el->FirstChildElement("receive_buffer_size");
                 if (buf_el)
                     buf_el->QueryIntText(&server_cfg.receive_buffer_size);
-                // Backward compatibility: allow <server>/path.sock</server>
-                if (server_cfg.path.empty() && el->GetText())
-                    server_cfg.path = el->GetText();
                 if (!server_cfg.path.empty())
                     config.uds_servers.push_back(server_cfg);
             }
