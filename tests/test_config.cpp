@@ -24,11 +24,11 @@ TEST_CASE("Config parsing: minimal valid config", "[config]")
     <ctrl_status_uds>
         <appx>
             <request>
-                <path>/tmp/appx_to_fsl.requests.sock</path>
+                <path>/tmp/appx_to_fcom</path>
                 <receive_buffer_size>2048</receive_buffer_size>
             </request>
             <response>
-                <path>/tmp/fsl_to_appx.responses.sock</path>
+                <path>/tmp/fcom_to_appx</path>
                 <receive_buffer_size>4096</receive_buffer_size>
             </response>
         </appx>
@@ -50,9 +50,9 @@ TEST_CASE("Config parsing: minimal valid config", "[config]")
     REQUIRE(cfg.ul_uds_mapping.at(1) == "test.ul");
     REQUIRE(cfg.ctrl_uds.size() == 1);
     REQUIRE(cfg.ctrl_uds.count("appx") == 1);
-    REQUIRE(cfg.ctrl_uds.at("appx").request_path == "/tmp/appx_to_fsl.requests.sock");
+    REQUIRE(cfg.ctrl_uds.at("appx").request_path == "/tmp/appx_to_fcom");
     REQUIRE(cfg.ctrl_uds.at("appx").request_buffer_size == 2048);
-    REQUIRE(cfg.ctrl_uds.at("appx").response_path == "/tmp/fsl_to_appx.responses.sock");
+    REQUIRE(cfg.ctrl_uds.at("appx").response_path == "/tmp/fcom_to_appx");
     REQUIRE(cfg.ctrl_uds.at("appx").response_buffer_size == 4096);
     remove("test_config.xml");
 }

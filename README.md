@@ -84,24 +84,24 @@ The system is configured via an XML file. Example:
     <data_link_uds>
         <!-- app1 -->
         <server>
-            <path>/tmp/app1.fsl.dl.high.sock</path>
+            <path>/tmp/DL_APP1_H</path>
             <receive_buffer_size>1024</receive_buffer_size>
         </server>
         <server>
-            <path>/tmp/app1.fsl.dl.low.sock</path>
+            <path>/tmp/DL_APP1_L</path>
             <receive_buffer_size>1024</receive_buffer_size>
         </server>
-        <client name="app1.ul">/tmp/app1.fsl.ul.sock</client>
+        <client name="app1.ul">UL_APP1</client>
         <!-- app2 -->
         <server>
-            <path>/tmp/app2.fsl.dl.high.sock</path>
+            <path>/tmp/DL_APP2_H</path>
             <receive_buffer_size>1024</receive_buffer_size>
         </server>
         <server>
-            <path>/tmp/app2.fsl.dl.low.sock</path>
+            <path>/tmp/DL_APP2_L</path>
             <receive_buffer_size>1024</receive_buffer_size>
         </server>
-        <client name="app2.ul">/tmp/app2.fsl.ul.sock</client>
+        <client name="app2.ul">UL_APP2</client>
     </data_link_uds>
     <ul_uds_mapping>
         <mapping opcode="1" uds="app1.ul" />
@@ -110,27 +110,27 @@ The system is configured via an XML file. Example:
     <ctrl_status_uds>
         <app1>
             <request>
-                <path>/tmp/app1_to_fsl.requests.sock</path>
+                <path>/tmp/app1_to_fcom</path>
                 <receive_buffer_size>1024</receive_buffer_size>
             </request>
             <response>
-                <path>/tmp/fsl_to_app1.responses.sock</path>
+                <path>/tmp/fcom_to_app1</path>
                 <receive_buffer_size>1024</receive_buffer_size>
             </response>
         </app1>
         <app2>
             <request>
-                <path>/tmp/app2_to_fsl.requests.sock</path>
+                <path>/tmp/app2_to_fcom</path>
                 <receive_buffer_size>1024</receive_buffer_size>
             </request>
             <response>
-                <path>/tmp/fsl_to_app2.responses.sock</path>
+                <path>/tmp/fcom_to_app2</path>
                 <receive_buffer_size>1024</receive_buffer_size>
             </response>
         </app2>
         <tod>
             <request>
-                <path>/tmp/app2_to_fsl.requests.sock</path>
+                <path>/tmp/app2_to_fcom</path>
                 <receive_buffer_size>1024</receive_buffer_size>
             </request>
         </tod>
@@ -167,7 +167,7 @@ Or use Python to send a packet with a specific opcode and payload.
 Send data to a UDS server socket:
 
 ```bash
-echo -n "payload" | socat - UNIX-SENDTO:/tmp/app1.fsl.dl.high.sock
+echo -n "payload" | socat - UNIX-SENDTO:/tmp/DL_APP1_H
 ```
 FSL will send a UDP packet to the remote IP/port.
 

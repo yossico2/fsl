@@ -13,24 +13,24 @@
     <data_link_uds>
         <!-- for downlink: fsl is server -->
         <server>
-            <path>/tmp/app1.fsl.dl.high.sock</path>
+            <path>/tmp/DL_APP1_H</path>
             <receive_buffer_size>1024</receive_buffer_size>
         </server>
         <server>
-            <path>/tmp/app1.fsl.dl.low.sock</path>
+            <path>/tmp/DL_APP1_L</path>
             <receive_buffer_size>1024</receive_buffer_size>
         </server>
         <server>
-            <path>/tmp/app2.fsl.dl.high.sock</path>
+            <path>/tmp/DL_APP2_H</path>
             <receive_buffer_size>1024</receive_buffer_size>
         </server>
         <server>
-            <path>/tmp/app2.fsl.dl.low.sock</path>
+            <path>/tmp/DL_APP2_L</path>
             <receive_buffer_size>1024</receive_buffer_size>
         </server>
         <!-- for uplink: fsl is client -->
-        <client name="app1.ul">/tmp/app1.fsl.ul.sock</client>
-        <client name="app2.ul">/tmp/app2.fsl.ul.sock</client>
+        <client name="app1.ul">/tmp/UL_APP1</client>
+        <client name="app2.ul">/tmp/UL_APP2</client>
     </data_link_uds>
     <!-- uplink maping: opcode => application uds -->
     <!-- uds names must match client uds names above -->
@@ -42,27 +42,27 @@
     <ctrl_status_uds>
         <app1>
             <request>
-                <path>/tmp/app1_to_fsl.requests.sock</path>
+                <path>/tmp/app1_to_fcom</path>
                 <receive_buffer_size>1024</receive_buffer_size>
             </request>
             <response>
-                <path>/tmp/fsl_to_app1.responses.sock</path>
+                <path>/tmp/fcom_to_app1</path>
                 <receive_buffer_size>1024</receive_buffer_size>
             </response>
         </app1>
         <app2>
             <request>
-                <path>/tmp/app2_to_fsl.requests.sock</path>
+                <path>/tmp/app2_to_fcom</path>
                 <receive_buffer_size>1024</receive_buffer_size>
             </request>
             <response>
-                <path>/tmp/fsl_to_app2.responses.sock</path>
+                <path>/tmp/fcom_to_app2</path>
                 <receive_buffer_size>1024</receive_buffer_size>
             </response>
         </app2>
         <tod>
             <request>
-                <path>/tmp/app2_to_fsl.requests.sock</path>
+                <path>/tmp/app2_to_fcom</path>
                 <receive_buffer_size>1024</receive_buffer_size>
             </request>
         </tod>
