@@ -243,10 +243,10 @@ void App::run()
             sockaddr_in sender_addr;
             socklen_t sender_len = sizeof(sender_addr);
             int n = udp_.receive(buffer, sizeof(buffer), &sender_addr);
-            if (n >= (int)sizeof(FslGslHeader))
+            if (n >= (int)sizeof(GslFslHeader))
             {
-                const FslGslHeader *hdr = reinterpret_cast<const FslGslHeader *>(buffer);
-                uint16_t opcode = hdr->msg_opcode;
+                const GslFslHeader *hdr = reinterpret_cast<const GslFslHeader *>(buffer);
+                uint16_t opcode = hdr->opcode;
                 std::map<uint16_t, std::string>::const_iterator map_it = config_.ul_uds_mapping.find(opcode);
                 if (map_it != config_.ul_uds_mapping.end())
                 {
@@ -255,7 +255,7 @@ void App::run()
                     if (client_it != uds_clients_.end())
                     {
                         // Forward only the payload (excluding header)
-                        ssize_t sent = client_it->second->send(buffer + sizeof(FslGslHeader), n - sizeof(FslGslHeader));
+                        ssize_t sent = client_it->second->send(buffer + sizeof(GslFslHeader), n - sizeof(GslFslHeader));
                         if (sent < 0)
                         {
                             std::cerr << "[ERROR] Failed to send to UDS client '" << uds_name << "' (opcode: " << opcode << ")" << std::endl;
@@ -282,15 +282,15 @@ void App::run()
         {
             if (fds[1 + i].revents & POLLIN)
             {
-                int n = uds_servers_[i]->receive(buffer + sizeof(FslGslHeader), sizeof(buffer) - sizeof(FslGslHeader));
+                int n = uds_servers_[i]->receive(buffer + sizeof(GslFslHeader), sizeof(buffer) - sizeof(GslFslHeader));
                 if (n > 0)
                 {
-                    FslGslHeader hdr;
-                    hdr.msg_opcode = 0; // Downlink opcode
-                    hdr.msg_length = n;
-                    hdr.msg_seq_id = msg_id_counter++;
-                    memcpy(buffer, &hdr, sizeof(FslGslHeader));
-                    ssize_t sent = udp_.send(buffer, n + sizeof(FslGslHeader));
+                    GslFslHeader hdr;
+                    hdr.opcode = 0; // Downlink opcode
+                    hdr.length = n;
+                    hdr.seq_id = msg_id_counter++;
+                    memcpy(buffer, &hdr, sizeof(GslFslHeader));
+                    ssize_t sent = udp_.send(buffer, n + sizeof(GslFslHeader));
                     if (sent < 0)
                     {
                         std::cerr << "[ERROR] Failed to send UDP packet from UDS server index " << i << std::endl;

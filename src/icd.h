@@ -3,16 +3,16 @@
 #include <cstdint>
 #include <cstddef>
 
-/// FSL-GSL protocol message header (UDP framing)
-typedef struct FslGslHeader
+/// GSL-FSL protocol message header (UDP framing)
+typedef struct GslFslHeader
 {
-    uint16_t msg_opcode; ///< Message opcode (application-specific)
-    uint16_t msg_length; ///< Payload length (bytes)
-    uint32_t msg_seq_id; ///< Unique message ID (monotonic)
-} FslGslHeader;
+    uint16_t opcode; ///< Message opcode (application-specific)
+    uint16_t length; ///< Payload length (bytes)
+    uint32_t seq_id; ///< Unique message ID (monotonic)
+} GslFslHeader;
 
-/// Size of FslGslHeader struct (for framing)
-static const size_t FSL_GSL_HEADER_SIZE = sizeof(FslGslHeader);
+/// Size of GslFslHeader struct (for framing)
+static const size_t FSL_GSL_HEADER_SIZE = sizeof(GslFslHeader);
 
 /// FSL operational states
 enum FslStates : uint8_t
