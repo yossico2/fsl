@@ -15,7 +15,8 @@ int main()
 
     try
     {
-        App app("config.xml");
+        AppConfig config = load_config("config.xml");
+        App app(config);
         app.run();
     }
     catch (const std::exception &e)

@@ -41,8 +41,8 @@ std::condition_variable ctrl_queue_cv_;
 std::thread ctrl_worker_;
 bool ctrl_worker_running_ = true;
 
-App::App(const std::string &config_path)
-    : config_(load_config(config_path.c_str())),
+App::App(const AppConfig &config)
+    : config_(config),
       udp_(config_.udp_local_port, config_.udp_remote_ip, config_.udp_remote_port)
 {
     // Register signal handlers for graceful shutdown

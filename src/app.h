@@ -37,7 +37,7 @@ public:
     std::queue<CtrlRequest> ctrl_queue_;
     std::mutex ctrl_queue_mutex_;
     std::condition_variable ctrl_queue_cv_;
-    App(const std::string &config_path);
+    App(const AppConfig &config);
     void run();
     void cleanup();
     static void signalHandler(int signum);
