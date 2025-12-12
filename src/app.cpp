@@ -417,7 +417,41 @@ void App::run()
 
 void App::processCtrlRequest(const CtrlRequest &req)
 {
-    // Actual ctrl message processing logic here
-    Logger::info("[CTRL-WORKER] Processing request for '" + req.ctrl_uds_name + "', bytes=" + std::to_string(req.data.size()));
-    // lilo:TODO: Implement ctrl message handling
+    if (req.ctrl_uds_name == "FSW")
+    {
+        processFSWCtrlRequest(const_cast<std::vector<uint8_t> &>(req.data));
+    }
+    else if (req.ctrl_uds_name == "PLMG")
+    {
+        processPLMGCtrlRequest(const_cast<std::vector<uint8_t> &>(req.data));
+    }
+    else if (req.ctrl_uds_name == "EL")
+    {
+        processELCtrlRequest(const_cast<std::vector<uint8_t> &>(req.data));
+    }
+    else
+    {
+        Logger::error("[CTRL-WORKER] Unknown ctrl_uds_name: '" + req.ctrl_uds_name + "'");
+    }
+}
+
+void App::processFSWCtrlRequest(std::vector<uint8_t> &data)
+{
+    // Handle FSW control request
+    Logger::info("[CTRL] Processing FSW control request, bytes=" + std::to_string(data.size()));
+    // lilo:TODO: Implement FSW control request handling
+}
+
+void App::processPLMGCtrlRequest(std::vector<uint8_t> &data)
+{
+    // Handle PLMG control request
+    Logger::info("[CTRL] Processing PLMG control request, bytes=" + std::to_string(data.size()));
+    // lilo:TODO: Implement PLMG control request handling
+}
+
+void App::processELCtrlRequest(std::vector<uint8_t> &data)
+{
+    // Handle EL control request
+    Logger::info("[CTRL] Processing EL control request, bytes=" + std::to_string(data.size()));
+    // lilo:TODO: Implement EL control request handling
 }

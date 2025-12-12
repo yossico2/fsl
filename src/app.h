@@ -42,6 +42,9 @@ public:
     void cleanup();
     static void signalHandler(int signum);
     void processCtrlRequest(const CtrlRequest &req);
+    void processFSWCtrlRequest(std::vector<uint8_t> &data);
+    void processPLMGCtrlRequest(std::vector<uint8_t> &data);
+    void processELCtrlRequest(std::vector<uint8_t> &data);
 
 private:
     AppConfig config_;
