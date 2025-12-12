@@ -22,8 +22,6 @@
 #include <signal.h>
 #include <unistd.h>
 #include <set>
-#include "icd.h"
-#include "logger.h"
 
 #include <thread>
 #include <queue>
@@ -31,6 +29,9 @@
 #include <condition_variable>
 #include <vector>
 
+#include "logger.h"
+#include "icd/fsl.h"
+#include "icd/fcom.h"
 #include "ctrl_request.h"
 
 volatile sig_atomic_t App::shutdown_flag_ = 0;
