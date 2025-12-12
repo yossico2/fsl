@@ -439,6 +439,7 @@ void App::processFSWCtrlRequest(std::vector<uint8_t> &data)
 {
     // Handle FSW control request
     Logger::info("[CTRL] Processing FSW control request, bytes=" + std::to_string(data.size()));
+    const fcom_fsw_CS_Header *hdr = reinterpret_cast<const fcom_fsw_CS_Header *>(data.data());
     // lilo:TODO: Implement FSW control request handling
 }
 
@@ -446,6 +447,7 @@ void App::processPLMGCtrlRequest(std::vector<uint8_t> &data)
 {
     // Handle PLMG control request
     Logger::info("[CTRL] Processing PLMG control request, bytes=" + std::to_string(data.size()));
+    const plmg_fcom_Header *hdr = reinterpret_cast<const plmg_fcom_Header *>(data.data());
     // lilo:TODO: Implement PLMG control request handling
 }
 
@@ -453,5 +455,6 @@ void App::processELCtrlRequest(std::vector<uint8_t> &data)
 {
     // Handle EL control request
     Logger::info("[CTRL] Processing EL control request, bytes=" + std::to_string(data.size()));
+    const plmg_fcom_Header *hdr = reinterpret_cast<const plmg_fcom_Header *>(data.data());
     // lilo:TODO: Implement EL control request handling
 }
