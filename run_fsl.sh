@@ -1,9 +1,14 @@
 #!/bin/bash
 
 print_usage() {
-	echo "Usage: $0 [instance] [-d]"
-	echo "  instance    Instance number (default: 1)"
+	echo "Usage: $0 [instance] [-d] [-nd] [-h|--help]"
+	echo "  instance    Instance number to run (default: 1)"
 	echo "  -d          Run container in detached mode (can be before or after instance)"
+	echo "  -nd         Run FSL directly (no Docker)"
+	echo "  -h, --help  Show this help message"
+	echo ""
+	echo "Environment variables:"
+	echo "  NO_DOCKER=1   Run FSL directly (no Docker), equivalent to -nd"
 }
 
 

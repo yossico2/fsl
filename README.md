@@ -60,9 +60,10 @@ export PETALINUX_C_COMPILER=<path-to-petalinux-gcc>
 export PETALINUX_CXX_COMPILER=<path-to-petalinux-g++>
 mkdir -p build
 cd build
-cmake ..
-make
-```
+
+# FSL: Flexible Socket Layer (C++)
+
+FSL is a C++ application providing a flexible socket layer for message routing between UDP and Unix Domain Sockets (UDS). It is designed for both Ubuntu/Linux and PetaLinux environments, with a focus on modular configuration and robust testing.
 
 Replace `<path-to-petalinux-gcc>` and `<path-to-petalinux-g++>` with the actual paths to your PetaLinux toolchain binaries.
 
@@ -72,79 +73,105 @@ Replace `<path-to-petalinux-gcc>` and `<path-to-petalinux-g++>` with the actual 
 
 ## Configuration (`config.xml`)
 
-The system is configured via an XML file. Example:
+## Building (Ubuntu/Linux)
 
-```xml
-<config>
-    <udp>
-        <local_port>9910</local_port>
-        <remote_ip>127.0.0.1</remote_ip>
-        <remote_port>9010</remote_port>
-    </udp>
-    <data_link_uds>
-        <!-- FSW -->
-        <server>
-            <path>/tmp/FSW_DL_H</path>
-            <receive_buffer_size>1024</receive_buffer_size>
-        </server>
-        <server>
-            <path>/tmp/FSW_DL_L</path>
-            <receive_buffer_size>1024</receive_buffer_size>
-        </server>
-        <client name="FSW_UL">/tmp/FSW_UL</client>
-        <!-- PLMG -->
-        <server>
-            <path>/tmp/DL_PLMG_H</path>
-            <receive_buffer_size>1024</receive_buffer_size>
-        </server>
-        <server>
-            <path>/tmp/DL_PLMG_L</path>
-            <receive_buffer_size>1024</receive_buffer_size>
-        </server>
-        <client name="UL_PLMG">/tmp/UL_PLMG</client>
-        <!-- EL -->
-        <server>
-            <path>/tmp/DL_EL_H</path>
-            <receive_buffer_size>1024</receive_buffer_size>
-        </server>
-        <server>
-            <path>/tmp/DL_EL_L</path>
-            <receive_buffer_size>1024</receive_buffer_size>
-        </server>
-        <client name="UL_EL">/tmp/UL_EL</client>
-    </data_link_uds>
-    <ul_uds_mapping>
-        <mapping opcode="1" uds="FSW_UL" />
-        <mapping opcode="2" uds="UL_PLMG" />
-        <mapping opcode="3" uds="UL_EL" />
-    </ul_uds_mapping>
-    <ctrl_status_uds>
-        <FSW>
-            <request>
-                <path>/tmp/fsw_to_fcom</path>
+
+The `make.sh` script supports several commands for building, testing, cleaning, and Docker image creation:
+
+```bash
+# Show usage
+./make.sh -h
+
+# Clean build directories
+./make.sh clean
+
+# Build (default: Debug, Linux)
+./make.sh
+
+# Run all: clean, build, and test
+./make.sh all
+
+# Run unit and integration tests
+./make.sh test
+
+# Build Docker image (tag: fsl)
+./make.sh image
+
+# Specify build type (debug or release)
+./make.sh -b debug
+./make.sh -b release
+
+# Specify target (linux or petalinux)
+./make.sh -t linux
+./make.sh -t petalinux
+
+# Combine options
+./make.sh -b release -t petalinux
+```
+
+The script uses separate build directories for each configuration.
+
+```bash
+# Default (Debug, Linux)
+./make.sh
+
+# Specify build type (debug or release)
+./make.sh -b debug
+./make.sh -b release
+
+# Specify target (linux or petalinux)
+./make.sh -t linux
+./make.sh -t petalinux
+
+# Combine options
+./make.sh -b release -t petalinux
+```
+
+The script uses separate build directories for each configuration.
+
+### Cleaning build files
+
+To remove all build files, run:
+
+```bash
+cd build
+make clean
+```
+
+No cleanup script is needed. The `build` directory is ignored by git via `.gitignore`.
+                <path>/tmp/app1_to_fcom</path>
                 <receive_buffer_size>1024</receive_buffer_size>
             </request>
             <response>
-                <path>/tmp/fcom_to_fsw</path>
+                <path>/tmp/fcom_to_app1</path>
                 <receive_buffer_size>1024</receive_buffer_size>
             </response>
-        </FSW>
-        <dynamic>
-            <request>
-                <path>/tmp/fsw_to_fcom</path>
+        </app1>
+        <app2>
+
+# Then build:
+mkdir -p build
+cd build
+cmake ..
+make
+```
+
+Replace `<path-to-petalinux-gcc>` and `<path-to-petalinux-g++>` with the actual paths to your PetaLinux toolchain binaries.
+            </response>
+        </app2>
+
+- `src/main.cpp`: Application entry point
+- `src/app.cpp`, `src/app.h`: Main application logic
+- `src/config.cpp`, `src/config.h`: XML configuration parser
+- `src/logger.cpp`, `src/logger.h`: Logging utilities
+- `src/udp.cpp`, `src/udp.h`: UDP socket handling
+- `src/uds.cpp`, `src/uds.h`: Unix Domain Socket handling
+- `src/ctrl_request.h`, `src/icd.h`, `src/instance_utils.h`: Protocol and utility headers
+- `src/config.xml`: Example configuration file
+                <path>/tmp/app2_to_fcom</path>
                 <receive_buffer_size>1024</receive_buffer_size>
             </request>
         </dynamic>
-        <PLMG>
-            <request>
-                <path>/tmp/plmg_to_fcom</path>
-                <receive_buffer_size>1024</receive_buffer_size>
-            </request>
-            <response>
-                <path>/tmp/fcom_to_plmg</path>
-                <receive_buffer_size>1024</receive_buffer_size>
-            </response>
-        </PLMG>
     </ctrl_status_uds>
 </config>
 ```
@@ -152,7 +179,8 @@ The system is configured via an XML file. Example:
 - `<udp>`: UDP socket configuration for FSL.
 - `<data_link_uds>`: UDS server sockets (downlink) and client sockets (uplink) for each app.
 - `<ul_uds_mapping>`: Maps message opcodes to UDS client names for routing uplink messages.
-- `<ctrl_status_uds>`: Contains ctrl/status UDS channels for each app or logical entity. Each child element (e.g., `<FSW>`, `<dynamic>, `<PLMG>`, `<telemetry>`, `<EL>``) defines request and/or response UDS sockets for control and status communication between the app and FSL. Each `<request>` or `<response>` can specify a `<path>` and an optional `<receive_buffer_size>`. This section is parsed dynamically, so you can add or remove app sections as needed.
+- `<ctrl_status_uds>`: Contains ctrl/status UDS channels for each app or logical entity. Each child element (e.g., `<app1>`, `<telemetry>`, `<app2>`, `<app3>`, `<dynamic>`) defines request and/or response UDS sockets for control and status communication between the app and FSL. Each `<request>` or `<response>` can specify a `<path>` and an optional `<receive_buffer_size>`. This section is parsed dynamically, so you can add or remove app sections as needed.
+
 
 ## Running the System
 
@@ -162,9 +190,30 @@ Build as described above, then run:
 ./build-debug/fsl
 ```
 
-## Testing the System
+## Testing
 
-### UDP → UDS client
+### C++ Unit Tests
+
+Unit tests are written using Catch2. To run all C++ tests:
+
+```bash
+./build-debug/tests
+```
+
+See `tests/test_config.cpp` for a config parser test.
+
+### Integration Tests (Python)
+
+Integration tests and scripts are in the `tests/` directory:
+
+- `integration_tests.py`: Python integration test
+- `run_integration_tests.sh`: Script to run integration tests
+
+See `tests/integration_tests.md` for details.
+
+### Manual Testing
+
+#### UDP → UDS client
 
 Send a UDP packet to the FSL UDP port (e.g., 9910):
 
@@ -173,22 +222,14 @@ echo -n -e '<binary-packet>' | socat - UDP:127.0.0.1:9910
 ```
 Or use Python to send a packet with a specific opcode and payload.
 
-### UDS server → UDP
+#### UDS server → UDP
 
 Send data to a UDS server socket:
 
 ```bash
-echo -n "payload" | socat - UNIX-SENDTO:/tmp/DL_EL_H
+echo -n "payload" | socat - UNIX-SENDTO:/tmp/DL_APP1_H
 ```
 FSL will send a UDP packet to the remote IP/port.
-
-## Example Test Script
-
-See `tests/test_config.cpp` for a config parser test using Catch2. To run all tests:
-
-```bash
-./build-debug/tests
-```
 
 ## Environment Variable Override
 
@@ -205,3 +246,7 @@ FSL_LOCAL_PORT=1234 FSL_REMOTE_IP=1.2.3.4 FSL_REMOTE_PORT=5678 ./build-debug/fsl
 ```
 
 If set, these variables take precedence over the values in `config.xml`.
+
+## License
+
+Add your license information here (e.g., MIT, Apache 2.0, etc.).
