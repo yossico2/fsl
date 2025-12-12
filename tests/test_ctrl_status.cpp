@@ -9,10 +9,11 @@
 TEST_CASE("CtrlRequest queueing and worker processing", "[ctrl_status]")
 {
     // Create a minimal App instance (mock config)
-    App app("test_config.xml");
+    AppConfig cfg = load_config("test_config.xml");
+    App app(cfg);
     // Simulate a CtrlRequest
     CtrlRequest req;
-    req.app_name = "test_app";
+    req.ctrl_uds_name = "test_app";
     req.data = {1, 2, 3, 4};
 
     // Lock and push to queue
@@ -30,19 +31,20 @@ TEST_CASE("CtrlRequest queueing and worker processing", "[ctrl_status]")
 
 TEST_CASE("CtrlRequest queue full error", "[ctrl_status]")
 {
-    App app("test_config.xml");
+    AppConfig cfg = load_config("test_config.xml");
+    App app(cfg);
     // Fill the queue to max size
     for (size_t i = 0; i < App::CTRL_QUEUE_MAX_SIZE; ++i)
     {
         CtrlRequest req;
-        req.app_name = "test_app";
+        req.ctrl_uds_name = "test_app";
         req.data = {static_cast<uint8_t>(i)};
         std::lock_guard<std::mutex> lock(app.ctrl_queue_mutex_);
         app.ctrl_queue_.push(req);
     }
     // Try to add one more
     CtrlRequest req;
-    req.app_name = "overflow_app";
+    req.ctrl_uds_name = "overflow_app";
     req.data = {99};
     bool queued = false;
     {

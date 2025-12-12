@@ -48,11 +48,11 @@ TEST_CASE("Config parsing: minimal valid config", "[config]")
     REQUIRE(cfg.uds_clients.at("test.ul") == "/tmp/test2.sock");
     REQUIRE(cfg.ul_uds_mapping.size() == 1);
     REQUIRE(cfg.ul_uds_mapping.at(1) == "test.ul");
-    REQUIRE(cfg.ctrl_uds.size() == 1);
-    REQUIRE(cfg.ctrl_uds.count("appx") == 1);
-    REQUIRE(cfg.ctrl_uds.at("appx").request_path == "/tmp/appx_to_fcom");
-    REQUIRE(cfg.ctrl_uds.at("appx").request_buffer_size == 2048);
-    REQUIRE(cfg.ctrl_uds.at("appx").response_path == "/tmp/fcom_to_appx");
-    REQUIRE(cfg.ctrl_uds.at("appx").response_buffer_size == 4096);
+    REQUIRE(cfg.ctrl_uds_name.size() == 1);
+    REQUIRE(cfg.ctrl_uds_name.count("appx") == 1);
+    REQUIRE(cfg.ctrl_uds_name.at("appx").request_path == "/tmp/appx_to_fcom");
+    REQUIRE(cfg.ctrl_uds_name.at("appx").request_buffer_size == 2048);
+    REQUIRE(cfg.ctrl_uds_name.at("appx").response_path == "/tmp/fcom_to_appx");
+    REQUIRE(cfg.ctrl_uds_name.at("appx").response_buffer_size == 4096);
     remove("test_config.xml");
 }

@@ -47,11 +47,11 @@ struct AppConfig
     // Uplink: UDS clients (name -> path)
     std::map<std::string, std::string> uds_clients;
 
-    // Uplink: opcode -> uds client name
+    // Uplink: opcode -> uplink uds_name
     std::map<uint16_t, std::string> ul_uds_mapping;
 
-    // Ctrl/Status: app_name -> CtrlUdsConfig
-    std::map<std::string, CtrlUdsConfig> ctrl_uds;
+    // Ctrl/Status: ctrl_uds_name -> CtrlUdsConfig
+    std::map<std::string, CtrlUdsConfig> ctrl_uds_name;
 };
 
 AppConfig load_config(const char *filename, int instance = 0); ///< Parses config.xml and returns AppConfig, optionally rewriting UDS paths for instance

@@ -121,7 +121,7 @@ AppConfig load_config(const char *filename, int instance)
                 if (buf)
                     buf->QueryIntText(&ctrl_cfg.response_buffer_size);
             }
-            config.ctrl_uds[section] = ctrl_cfg;
+            config.ctrl_uds_name[section] = ctrl_cfg;
         }
     }
 
@@ -161,7 +161,7 @@ AppConfig load_config(const char *filename, int instance)
             }
         }
         // Ctrl/Status UDS
-        for (auto &entry : config.ctrl_uds)
+        for (auto &entry : config.ctrl_uds_name)
         {
             auto &ctrl_cfg = entry.second;
             if (!ctrl_cfg.request_path.empty() && ctrl_cfg.request_path.rfind("/tmp/", 0) == 0)

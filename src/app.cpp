@@ -59,9 +59,9 @@ App::App(const AppConfig &config)
     // 1. Check all UDS mapping names exist in <client>
     for (const auto &mapping : config_.ul_uds_mapping)
     {
-        const std::string &uds_name = mapping.second;
-        if (config_.uds_clients.find(uds_name) == config_.uds_clients.end())
-            Logger::error("UDS mapping name '" + uds_name + "' (opcode " + std::to_string(mapping.first) + ") does not exist in <client> list.");
+        const std::string &ctrl_uds_name = mapping.second;
+        if (config_.uds_clients.find(ctrl_uds_name) == config_.uds_clients.end())
+            Logger::error("UDS mapping name '" + ctrl_uds_name + "' (opcode " + std::to_string(mapping.first) + ") does not exist in <client> list.");
     }
 
     // 2. Ensure all UDS server/client paths are non-empty and unique
@@ -107,9 +107,9 @@ App::App(const AppConfig &config)
     }
 
     // Create ctrl/status UDS sockets for each app
-    for (const auto &entry : config_.ctrl_uds)
+    for (const auto &entry : config_.ctrl_uds_name)
     {
-        const std::string &app_name = entry.first;
+        const std::string &ctrl_uds_name = entry.first;
         const CtrlUdsConfig &cfg = entry.second;
         CtrlUdsSockets sockets;
         if (!cfg.request_path.empty())
@@ -121,7 +121,7 @@ App::App(const AppConfig &config)
             }
             if (!sockets.request->bindSocket())
             {
-                throw std::runtime_error("Error binding ctrl request UDS for " + app_name + ": " + cfg.request_path);
+                throw std::runtime_error("Error binding ctrl request UDS for " + ctrl_uds_name + ": " + cfg.request_path);
             }
         }
         if (!cfg.response_path.empty())
@@ -133,10 +133,10 @@ App::App(const AppConfig &config)
             }
             if (!sockets.response->bindSocket())
             {
-                throw std::runtime_error("Error binding ctrl response UDS for " + app_name + ": " + cfg.response_path);
+                throw std::runtime_error("Error binding ctrl response UDS for " + ctrl_uds_name + ": " + cfg.response_path);
             }
         }
-        ctrl_uds_sockets_[app_name] = std::move(sockets);
+        ctrl_uds_sockets_[ctrl_uds_name] = std::move(sockets);
     }
 }
 
@@ -222,7 +222,7 @@ void App::run()
         uds_clients_list += "  " + entry.first + ": " + entry.second + "\n";
     Logger::info(uds_clients_list);
     std::string ctrl_status_uds = "Ctrl/Status UDS:\n";
-    for (const auto &entry : config_.ctrl_uds)
+    for (const auto &entry : config_.ctrl_uds_name)
     {
         const std::string &app = entry.first;
         const CtrlUdsConfig &c = entry.second;
@@ -254,14 +254,14 @@ void App::run()
     // === Polling and routing logic ---
     // Layout: [0]=UDP, [1..N]=UDS servers, [N+1..]=ctrl_uds_sockets_ (request only)
     const size_t uds_count = uds_servers_.size();
-    std::vector<std::string> ctrl_apps;
+    std::vector<std::string> ctrl_uds_names;
     for (const auto &entry : ctrl_uds_sockets_)
     {
         if (entry.second.request)
-            ctrl_apps.push_back(entry.first);
+            ctrl_uds_names.push_back(entry.first);
     }
 
-    const size_t nfds = 1 + uds_count + ctrl_apps.size();
+    const size_t nfds = 1 + uds_count + ctrl_uds_names.size();
     std::vector<pollfd> fds(nfds);
 
     // UDP socket
@@ -276,10 +276,10 @@ void App::run()
     }
 
     // ctrl_uds_sockets_ (requests only)
-    for (size_t i = 0; i < ctrl_apps.size(); ++i)
+    for (size_t i = 0; i < ctrl_uds_names.size(); ++i)
     {
-        const auto &app_name = ctrl_apps[i];
-        const auto &sockets = ctrl_uds_sockets_.at(app_name);
+        const auto &ctrl_uds_name = ctrl_uds_names[i];
+        const auto &sockets = ctrl_uds_sockets_.at(ctrl_uds_name);
         int fd = -1;
         if (sockets.request)
             fd = sockets.request->getFd();
@@ -312,24 +312,24 @@ void App::run()
                 std::map<uint16_t, std::string>::const_iterator map_it = config_.ul_uds_mapping.find(opcode);
                 if (map_it != config_.ul_uds_mapping.end())
                 {
-                    const std::string &uds_name = map_it->second;
-                    std::map<std::string, std::unique_ptr<UdsSocket>>::iterator client_it = uds_clients_.find(uds_name);
+                    const std::string &ctrl_uds_name = map_it->second;
+                    std::map<std::string, std::unique_ptr<UdsSocket>>::iterator client_it = uds_clients_.find(ctrl_uds_name);
                     if (client_it != uds_clients_.end())
                     {
                         // Forward only the payload (excluding header)
                         ssize_t sent = client_it->second->send(buffer + sizeof(GslFslHeader), n - sizeof(GslFslHeader));
                         if (sent < 0)
                         {
-                            Logger::error("Failed to send to UDS client '" + uds_name + "' (opcode: " + std::to_string(opcode) + ")");
+                            Logger::error("Failed to send to UDS client '" + ctrl_uds_name + "' (opcode: " + std::to_string(opcode) + ")");
                         }
                         else
                         {
-                            Logger::info("Routed UDP->UDS: opcode=" + std::to_string(opcode) + ", bytes=" + std::to_string(sent) + ", dest='" + uds_name + "'");
+                            Logger::info("Routed UDP->UDS: opcode=" + std::to_string(opcode) + ", bytes=" + std::to_string(sent) + ", dest='" + ctrl_uds_name + "'");
                         }
                     }
                     else
                     {
-                        Logger::error("No UDS client found for name: " + uds_name);
+                        Logger::error("No UDS client found for name: " + ctrl_uds_name);
                     }
                 }
                 else
@@ -370,18 +370,18 @@ void App::run()
         }
 
         // --- ctrl_uds_sockets_ (request only) handlers ---
-        for (size_t i = 0; i < ctrl_apps.size(); ++i)
+        for (size_t i = 0; i < ctrl_uds_names.size(); ++i)
         {
             if (fds[1 + uds_count + i].revents & POLLIN)
             {
-                const std::string &app_name = ctrl_apps[i];
-                int n = ctrl_uds_sockets_[app_name].request->receive(buffer, sizeof(buffer));
+                const std::string &ctrl_uds_name = ctrl_uds_names[i];
+                int n = ctrl_uds_sockets_[ctrl_uds_name].request->receive(buffer, sizeof(buffer));
                 if (n > 0)
                 {
-                    Logger::info("[CTRL] Received request for '" + app_name + "', bytes=" + std::to_string(n));
+                    Logger::info("[CTRL] Received request for '" + ctrl_uds_name + "', bytes=" + std::to_string(n));
                     // Producer: enqueue ctrl request for worker thread
                     CtrlRequest req;
-                    req.app_name = app_name;
+                    req.ctrl_uds_name = ctrl_uds_name;
                     req.data.assign(buffer, buffer + n);
                     bool queued = false;
                     {
@@ -399,13 +399,13 @@ void App::run()
                     else
                     {
                         // Buffer full: handle error (log, respond, etc.)
-                        Logger::error("[CTRL] Queue full, dropping request for '" + app_name + "'");
+                        Logger::error("[CTRL] Queue full, dropping request for '" + ctrl_uds_name + "'");
                         // TODO: Optionally send FSL_CTRL_ERR_QUEUE_FULL response to client
                     }
                 }
                 else if (n < 0)
                 {
-                    Logger::error("[CTRL] Failed to receive request for '" + app_name + "'");
+                    Logger::error("[CTRL] Failed to receive request for '" + ctrl_uds_name + "'");
                 }
             }
         }
@@ -418,6 +418,6 @@ void App::run()
 void App::processCtrlRequest(const CtrlRequest &req)
 {
     // Actual ctrl message processing logic here
-    Logger::info("[CTRL-WORKER] Processing request for '" + req.app_name + "', bytes=" + std::to_string(req.data.size()));
+    Logger::info("[CTRL-WORKER] Processing request for '" + req.ctrl_uds_name + "', bytes=" + std::to_string(req.data.size()));
     // lilo:TODO: Implement ctrl message handling
 }

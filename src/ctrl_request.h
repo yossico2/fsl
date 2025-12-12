@@ -5,7 +5,7 @@
 
 struct CtrlRequest
 {
-    std::string app_name;
+    std::string ctrl_uds_name;
     std::vector<uint8_t> data;
     // Add more fields as needed for ctrl/status message
 };
