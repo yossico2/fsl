@@ -82,58 +82,58 @@ The system is configured via an XML file. Example:
         <remote_port>9010</remote_port>
     </udp>
     <data_link_uds>
-        <!-- app1 -->
+        <!-- FSW -->
         <server>
-            <path>/tmp/DL_APP1_H</path>
+            <path>/tmp/DL_EL_H</path>
             <receive_buffer_size>1024</receive_buffer_size>
         </server>
         <server>
-            <path>/tmp/DL_APP1_L</path>
+            <path>/tmp/DL_EL_L</path>
             <receive_buffer_size>1024</receive_buffer_size>
         </server>
-        <client name="app1.ul">UL_APP1</client>
-        <!-- app2 -->
+        <client name="UL_EL">UL_EL</client>
+        <!-- PLMG -->
         <server>
-            <path>/tmp/DL_APP2_H</path>
+            <path>/tmp/DL_PLMG_H</path>
             <receive_buffer_size>1024</receive_buffer_size>
         </server>
         <server>
-            <path>/tmp/DL_APP2_L</path>
+            <path>/tmp/DL_PLMG_L</path>
             <receive_buffer_size>1024</receive_buffer_size>
         </server>
-        <client name="app2.ul">UL_APP2</client>
+        <client name="UL_PLMG">UL_PLMG</client>
     </data_link_uds>
     <ul_uds_mapping>
-        <mapping opcode="1" uds="app1.ul" />
-        <mapping opcode="2" uds="app2.ul" />
+        <mapping opcode="1" uds="UL_EL" />
+        <mapping opcode="2" uds="UL_PLMG" />
     </ul_uds_mapping>
     <ctrl_status_uds>
-        <app1>
+        <FSW>
             <request>
-                <path>/tmp/app1_to_fcom</path>
+                <path>/tmp/fsw_to_fcom</path>
                 <receive_buffer_size>1024</receive_buffer_size>
             </request>
             <response>
-                <path>/tmp/fcom_to_app1</path>
+                <path>/tmp/fcom_to_fsw</path>
                 <receive_buffer_size>1024</receive_buffer_size>
             </response>
-        </app1>
-        <app2>
-            <request>
-                <path>/tmp/app2_to_fcom</path>
-                <receive_buffer_size>1024</receive_buffer_size>
-            </request>
-            <response>
-                <path>/tmp/fcom_to_app2</path>
-                <receive_buffer_size>1024</receive_buffer_size>
-            </response>
-        </app2>
+        </FSW>
         <dynamic>
             <request>
-                <path>/tmp/app2_to_fcom</path>
+                <path>/tmp/fsw_to_fcom</path>
                 <receive_buffer_size>1024</receive_buffer_size>
             </request>
         </dynamic>
+        <PLMG>
+            <request>
+                <path>/tmp/plmg_to_fcom</path>
+                <receive_buffer_size>1024</receive_buffer_size>
+            </request>
+            <response>
+                <path>/tmp/fcom_to_plmg</path>
+                <receive_buffer_size>1024</receive_buffer_size>
+            </response>
+        </PLMG>
     </ctrl_status_uds>
 </config>
 ```
@@ -141,7 +141,7 @@ The system is configured via an XML file. Example:
 - `<udp>`: UDP socket configuration for FSL.
 - `<data_link_uds>`: UDS server sockets (downlink) and client sockets (uplink) for each app.
 - `<ul_uds_mapping>`: Maps message opcodes to UDS client names for routing uplink messages.
-- `<ctrl_status_uds>`: Contains ctrl/status UDS channels for each app or logical entity. Each child element (e.g., `<app1>`, `<telemetry>`, `<app2>`, `<app3>`, `<dynamic>`) defines request and/or response UDS sockets for control and status communication between the app and FSL. Each `<request>` or `<response>` can specify a `<path>` and an optional `<receive_buffer_size>`. This section is parsed dynamically, so you can add or remove app sections as needed.
+- `<ctrl_status_uds>`: Contains ctrl/status UDS channels for each app or logical entity. Each child element (e.g., `<FSW>`, `<dynamic>, `<PLMG>`, `<telemetry>`, `<EL>``) defines request and/or response UDS sockets for control and status communication between the app and FSL. Each `<request>` or `<response>` can specify a `<path>` and an optional `<receive_buffer_size>`. This section is parsed dynamically, so you can add or remove app sections as needed.
 
 ## Running the System
 
@@ -167,7 +167,7 @@ Or use Python to send a packet with a specific opcode and payload.
 Send data to a UDS server socket:
 
 ```bash
-echo -n "payload" | socat - UNIX-SENDTO:/tmp/DL_APP1_H
+echo -n "payload" | socat - UNIX-SENDTO:/tmp/DL_EL_H
 ```
 FSL will send a UDP packet to the remote IP/port.
 

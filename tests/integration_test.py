@@ -68,13 +68,13 @@ def test_udp_to_uds():
     fsl_udp_port = 9910
     instance = int(os.environ.get("SENSOR_INSTANCE", "0"))
     prefix = f"/tmp/sensor{instance}/" if instance > 0 else "/tmp/"
-    app_uds_clients = [
-        prefix + "UL_APP1",
-        prefix + "UL_APP2",
-        prefix + "UL_APP3",
+    uds_clients = [
+        prefix + "FSW_UL",
+        prefix + "UL_PLMG",
+        prefix + "UL_EL",
         # Add more uplink UDS client paths as needed
     ]
-    for i, uds_client_path in enumerate(app_uds_clients, start=1):
+    for i, uds_client_path in enumerate(uds_clients, start=1):
         opcode = i  # Use different opcode for each app if needed
         payload = f"hello_from_gsl_{i}"
         result = []
@@ -98,9 +98,9 @@ def test_uds_to_udp():
     instance = int(os.environ.get("SENSOR_INSTANCE", "0"))
     prefix = f"/tmp/sensor{instance}/" if instance > 0 else "/tmp/"
     app_uds_paths = [
-        prefix + "DL_APP1_H",
-        prefix + "DL_APP2_H",
-        prefix + "DL_APP3_H",
+        prefix + "DL_EL_H",
+        prefix + "DL_PLMG_H",
+        prefix + "FSW_HIGH_DL",
         # Add more app UDS paths as needed
     ]
     for i, uds_server_path in enumerate(app_uds_paths, start=1):

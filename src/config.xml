@@ -13,80 +13,80 @@
     <data_link_uds>
         <!-- for downlink: fsl is server -->
         <server>
-            <path>/tmp/DL_APP1_H</path>
+            <path>/tmp/DL_EL_H</path>
             <receive_buffer_size>1024</receive_buffer_size>
         </server>
         <server>
-            <path>/tmp/DL_APP1_L</path>
+            <path>/tmp/DL_EL_L</path>
             <receive_buffer_size>1024</receive_buffer_size>
         </server>
         <server>
-            <path>/tmp/DL_APP2_H</path>
+            <path>/tmp/DL_PLMG_H</path>
             <receive_buffer_size>1024</receive_buffer_size>
         </server>
         <server>
-            <path>/tmp/DL_APP2_L</path>
+            <path>/tmp/DL_PLMG_L</path>
             <receive_buffer_size>1024</receive_buffer_size>
         </server>
         <server>
-            <path>/tmp/DL_APP3_H</path>
+            <path>/tmp/FSW_HIGH_DL</path>
             <receive_buffer_size>1024</receive_buffer_size>
         </server>
         <server>
-            <path>/tmp/DL_APP3_L</path>
+            <path>/tmp/FSW_LOW_DL</path>
             <receive_buffer_size>1024</receive_buffer_size>
         </server>
         <!-- for uplink: fsl is client -->
-        <client name="app1.ul">/tmp/UL_APP1</client>
-        <client name="app2.ul">/tmp/UL_APP2</client>
-        <client name="app3.ul">/tmp/UL_APP3</client>
+        <client name="FSW_UL">/tmp/FSW_UL</client>
+        <client name="UL_PLMG">/tmp/UL_PLMG</client>
+        <client name="UL_EL">/tmp/UL_EL</client>
     </data_link_uds>
     <!-- uplink maping: opcode => application uds -->
     <!-- uds names must match client uds names above -->
     <ul_uds_mapping>
-        <mapping opcode="1" uds="app1.ul" />
-        <mapping opcode="2" uds="app2.ul" />
-        <mapping opcode="3" uds="app3.ul" />
+        <mapping opcode="1" uds="FSW_UL" />
+        <mapping opcode="2" uds="UL_PLMG" />
+        <mapping opcode="3" uds="UL_EL" />
     </ul_uds_mapping>
     <!-- uds channels for apps to fsl ctrl/status -->
     <ctrl_status_uds>
-        <app1>
+        <FSW>
             <request>
-                <path>/tmp/app1_to_fcom</path>
+                <path>/tmp/fsw_to_fcom</path>
                 <receive_buffer_size>1024</receive_buffer_size>
             </request>
             <response>
-                <path>/tmp/fcom_to_app1</path>
+                <path>/tmp/fcom_to_fsw</path>
             </response>
-        </app1>
-        <telemetry>
-            <request>
-                <path>/tmp/app1_telemetry</path>
-            </request>
-        </telemetry>
-        <app2>
-            <request>
-                <path>/tmp/app2_to_fcom</path>
-                <receive_buffer_size>1024</receive_buffer_size>
-            </request>
-            <response>
-                <path>/tmp/fcom_to_app2</path>
-            </response>
-        </app2>
-        <app3>
-            <request>
-                <path>/tmp/app3_to_fcom</path>
-                <receive_buffer_size>1024</receive_buffer_size>
-            </request>
-            <response>
-                <path>/tmp/fcom_to_app3</path>
-            </response>
-        </app3>
+        </FSW>
         <dynamic>
             <request>
-                <path>/tmp/app3_dynamic</path>
+                <path>/tmp/fsw_dynamic</path>
                 <receive_buffer_size>1024</receive_buffer_size>
             </request>
         </dynamic>
+        <PLMG>
+            <request>
+                <path>/tmp/plmg_to_fcom</path>
+                <receive_buffer_size>1024</receive_buffer_size>
+            </request>
+            <response>
+                <path>/tmp/fcom_to_plmg</path>
+            </response>
+        </PLMG>
+        <telemetry>
+            <request>
+                <path>/tmp/plmg_telemetry</path>
+            </request>
+        </telemetry>
+        <EL>
+            <request>
+                <path>/tmp/el_to_fcom</path>
+                <receive_buffer_size>1024</receive_buffer_size>
+            </request>
+            <response>
+                <path>/tmp/fcom_to_el</path>
+            </response>
+        </EL>
     </ctrl_status_uds>
 </config>
