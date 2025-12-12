@@ -84,14 +84,14 @@ The system is configured via an XML file. Example:
     <data_link_uds>
         <!-- FSW -->
         <server>
-            <path>/tmp/DL_EL_H</path>
+            <path>/tmp/FSW_DL_H</path>
             <receive_buffer_size>1024</receive_buffer_size>
         </server>
         <server>
-            <path>/tmp/DL_EL_L</path>
+            <path>/tmp/FSW_DL_L</path>
             <receive_buffer_size>1024</receive_buffer_size>
         </server>
-        <client name="UL_EL">UL_EL</client>
+        <client name="FSW_UL">/tmp/FSW_UL</client>
         <!-- PLMG -->
         <server>
             <path>/tmp/DL_PLMG_H</path>
@@ -101,11 +101,22 @@ The system is configured via an XML file. Example:
             <path>/tmp/DL_PLMG_L</path>
             <receive_buffer_size>1024</receive_buffer_size>
         </server>
-        <client name="UL_PLMG">UL_PLMG</client>
+        <client name="UL_PLMG">/tmp/UL_PLMG</client>
+        <!-- EL -->
+        <server>
+            <path>/tmp/DL_EL_H</path>
+            <receive_buffer_size>1024</receive_buffer_size>
+        </server>
+        <server>
+            <path>/tmp/DL_EL_L</path>
+            <receive_buffer_size>1024</receive_buffer_size>
+        </server>
+        <client name="UL_EL">/tmp/UL_EL</client>
     </data_link_uds>
     <ul_uds_mapping>
-        <mapping opcode="1" uds="UL_EL" />
+        <mapping opcode="1" uds="FSW_UL" />
         <mapping opcode="2" uds="UL_PLMG" />
+        <mapping opcode="3" uds="UL_EL" />
     </ul_uds_mapping>
     <ctrl_status_uds>
         <FSW>

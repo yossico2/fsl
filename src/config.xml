@@ -2,11 +2,11 @@
 <config>
     <!-- fsl and gsl addr -->
     <udp>
-        <!-- gsl port -->
-        <local_port>9910</local_port>
-        <!-- fsl host -->
-        <remote_ip>127.0.0.1</remote_ip>
         <!-- fsl port -->
+        <local_port>9910</local_port>
+        <!-- gsl host -->
+        <remote_ip>127.0.0.1</remote_ip>
+        <!-- gsl port -->
         <remote_port>9010</remote_port>
     </udp>
     <!-- data uds -->
