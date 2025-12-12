@@ -1,3 +1,64 @@
+def send_ctrl_request(uds_path, payload=b"\x00" * 8):
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+    s.sendto(payload, uds_path)
+    s.close()
+
+
+def wait_for_log_line(log_path, expected_line, timeout=3):
+    start = time.time()
+    while time.time() - start < timeout:
+        if os.path.exists(log_path):
+            with open(log_path, "r") as f:
+                for line in f:
+                    if expected_line in line:
+                        return True
+        time.sleep(0.2)
+    return False
+
+
+def test_ctrl_requests():
+    """Test: Send ctrl requests to FSL and check for log output."""
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    logs_dir = os.path.join(project_root, "logs")
+    if not os.path.exists(logs_dir):
+        os.makedirs(logs_dir, exist_ok=True)
+    LOG_PATH = os.path.join(logs_dir, "fsl-1.log")
+    instance = int(os.environ.get("SENSOR_INSTANCE", "0"))
+    prefix = f"/tmp/sensor{instance}/" if instance > 0 else "/tmp/"
+    CTRL_UDS_PATHS = {
+        "FSW": prefix + "fsw_to_fcom",
+        "PLMG": prefix + "plmg_to_fcom",
+        "EL": prefix + "el_to_fcom",
+    }
+    CTRL_LOG_LINES = {
+        "FSW": "[CTRL] Processing FSW control request",
+        "PLMG": "[CTRL] Processing PLMG control request",
+        "EL": "[CTRL] Processing EL control request",
+    }
+    time.sleep(1.0)  # Give FSL more time to open log file and bind UDS
+    for ctrl_name in ["FSW", "PLMG", "EL"]:
+        uds_path = CTRL_UDS_PATHS[ctrl_name]
+        expected_log = CTRL_LOG_LINES[ctrl_name]
+        # Wait for the UDS socket file to exist (timeout 3s)
+        print(f"Waiting for UDS socket {uds_path} to exist...")
+        start = time.time()
+        while not os.path.exists(uds_path) and time.time() - start < 3.0:
+            time.sleep(0.05)
+        if not os.path.exists(uds_path):
+            raise RuntimeError(f"UDS socket {uds_path} did not appear within timeout!")
+        print(f"CTRL: sending request to {uds_path}...")
+        send_ctrl_request(uds_path)
+        if not wait_for_log_line(LOG_PATH, expected_log):
+            print(f"\n[DEBUG] Log file contents for {LOG_PATH}:")
+            if os.path.exists(LOG_PATH):
+                with open(LOG_PATH, "r") as f:
+                    print(f.read())
+            else:
+                print("[DEBUG] Log file does not exist.")
+            raise AssertionError(f"Did not find log line: {expected_log} in {LOG_PATH}")
+        print(f"CTRL: log found for {ctrl_name}")
+
+
 """
 Integration tests for FSL using Python sockets.
 Simulates GSL (UDP client) and two apps (UDS clients/servers).
@@ -128,6 +189,8 @@ def main():
     test_udp_to_uds()
     print("--- Integration Test: UDS to UDP ---")
     test_uds_to_udp()
+    print("--- Integration Test: CTRL Requests ---")
+    test_ctrl_requests()
     print("All integration tests passed.")
 
 

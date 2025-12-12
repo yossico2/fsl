@@ -31,9 +31,11 @@ void Logger::log(const std::string &prefix, const std::string &msg, LogLevel lev
     if (level == LogLevel::ERROR)
     {
         std::cerr << prefix << " " << msg << std::endl;
+        std::cerr << std::flush;
     }
     else
     {
         std::cout << prefix << " " << msg << std::endl;
+        std::cout << std::flush;
     }
 }

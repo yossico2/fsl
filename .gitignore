@@ -1,4 +1,4 @@
-# Ignore build directory
+/logs/
 /build/
 /build-release/
 /build-debug/
