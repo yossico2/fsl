@@ -9,6 +9,57 @@
 
 using namespace tinyxml2;
 
+void override_config_from_env(AppConfig &config)
+{
+    if (const char *env = std::getenv("FSL_LOCAL_PORT"))
+    {
+        config.udp_local_port = std::atoi(env);
+    }
+    if (const char *env = std::getenv("FSL_REMOTE_IP"))
+    {
+        config.udp_remote_ip = env;
+    }
+    if (const char *env = std::getenv("FSL_REMOTE_PORT"))
+    {
+        config.udp_remote_port = std::atoi(env);
+    }
+}
+
+void rewrite_uds_paths(AppConfig &config, int instance)
+{
+    auto prefix = std::string("/tmp/sensor") + std::to_string(instance) + "/";
+    // UDS servers
+    for (auto &server : config.uds_servers)
+    {
+        if (!server.path.empty() && server.path.rfind("/tmp/", 0) == 0)
+        {
+            // Replace /tmp/ with /tmp/sensor{instance}/
+            server.path = prefix + server.path.substr(5);
+        }
+    }
+    // UDS clients
+    for (auto &client : config.uds_clients)
+    {
+        if (!client.second.empty() && client.second.rfind("/tmp/", 0) == 0)
+        {
+            client.second = prefix + client.second.substr(5);
+        }
+    }
+    // Ctrl/Status UDS
+    for (auto &entry : config.ctrl_uds_name)
+    {
+        auto &ctrl_cfg = entry.second;
+        if (!ctrl_cfg.request_path.empty() && ctrl_cfg.request_path.rfind("/tmp/", 0) == 0)
+        {
+            ctrl_cfg.request_path = prefix + ctrl_cfg.request_path.substr(5);
+        }
+        if (!ctrl_cfg.response_path.empty() && ctrl_cfg.response_path.rfind("/tmp/", 0) == 0)
+        {
+            ctrl_cfg.response_path = prefix + ctrl_cfg.response_path.substr(5);
+        }
+    }
+}
+
 AppConfig load_config(const char *filename, int instance)
 {
     XMLDocument doc;
@@ -125,54 +176,14 @@ AppConfig load_config(const char *filename, int instance)
         }
     }
 
-    // --- Override with environment variables if set ---
-    if (const char *env = std::getenv("FSL_LOCAL_PORT"))
-    {
-        config.udp_local_port = std::atoi(env);
-    }
-    if (const char *env = std::getenv("FSL_REMOTE_IP"))
-    {
-        config.udp_remote_ip = env;
-    }
-    if (const char *env = std::getenv("FSL_REMOTE_PORT"))
-    {
-        config.udp_remote_port = std::atoi(env);
-    }
-
     // If instance > 0, rewrite UDS paths
     if (instance > 0)
     {
-        auto prefix = std::string("/tmp/sensor") + std::to_string(instance) + "/";
-        // UDS servers
-        for (auto &server : config.uds_servers)
-        {
-            if (!server.path.empty() && server.path.rfind("/tmp/", 0) == 0)
-            {
-                // Replace /tmp/ with /tmp/sensor{instance}/
-                server.path = prefix + server.path.substr(5);
-            }
-        }
-        // UDS clients
-        for (auto &client : config.uds_clients)
-        {
-            if (!client.second.empty() && client.second.rfind("/tmp/", 0) == 0)
-            {
-                client.second = prefix + client.second.substr(5);
-            }
-        }
-        // Ctrl/Status UDS
-        for (auto &entry : config.ctrl_uds_name)
-        {
-            auto &ctrl_cfg = entry.second;
-            if (!ctrl_cfg.request_path.empty() && ctrl_cfg.request_path.rfind("/tmp/", 0) == 0)
-            {
-                ctrl_cfg.request_path = prefix + ctrl_cfg.request_path.substr(5);
-            }
-            if (!ctrl_cfg.response_path.empty() && ctrl_cfg.response_path.rfind("/tmp/", 0) == 0)
-            {
-                ctrl_cfg.response_path = prefix + ctrl_cfg.response_path.substr(5);
-            }
-        }
+        rewrite_uds_paths(config, instance);
     }
+
+    // --- Override with environment variables if set ---
+    override_config_from_env(config);
+
     return config;
 }
