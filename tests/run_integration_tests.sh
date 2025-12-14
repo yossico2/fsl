@@ -4,9 +4,38 @@
 
 set -e
 
-export STATEFULSET_INDEX=${STATEFULSET_INDEX:-0}
+# Parse build type and target from args or environment
+BUILD_TYPE="${BUILD_TYPE:-debug}"
+TARGET="${TARGET:-linux}"
+while [[ $# -gt 0 ]]; do
+	key="$1"
+	case $key in
+	-b | --build)
+		if [[ "$2" == "release" || "$2" == "release" ]]; then
+			BUILD_TYPE="release"
+		elif [[ "$2" == "debug" || "$2" == "debug" ]]; then
+			BUILD_TYPE="debug"
+		fi
+		shift
+		shift
+		;;
+	-t | --target)
+		if [[ "$2" == "linux" || "$2" == "Linux" ]]; then
+			TARGET="linux"
+		elif [[ "$2" == "petalinux" || "$2" == "PetaLinux" || "$2" == "petalinux" ]]; then
+			TARGET="petalinux"
+		fi
+		shift
+		shift
+		;;
+	*) shift ;;
+	esac
+done
 
-cd "$(dirname "$0")/../build-debug"
+BUILD_DIR="build"
+BUILD_TARGET_DIR="${BUILD_DIR}/${TARGET}/$(echo "${BUILD_TYPE}" | tr '[:upper:]' '[:lower:]')"
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "${BUILD_TARGET_DIR}"
 
 # Ensure logs directory exists under project root
 LOGDIR="../logs"
@@ -24,8 +53,8 @@ FSL_PID=$!
 # Wait for FSL to initialize
 sleep 1
 
-# Run integration tests (from project root)
-cd ../
+# Change to project root before running integration tests
+cd "${PROJECT_ROOT}"
 python3 tests/integration_tests.py
 TEST_RESULT=$?
 

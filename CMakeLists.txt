@@ -13,9 +13,9 @@ project(fsl)
 
 set(CMAKE_CXX_STANDARD 17)
 
-# Set default build type to Debug if not specified
+# Set default build type to debug if not specified
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
+    set(CMAKE_BUILD_TYPE debug CACHE STRING "Build type" FORCE)
 endif()
 
 # Platform selection

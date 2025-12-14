@@ -2,13 +2,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug fsl (build-debug)",
+            "name": "debug fsl",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build-debug/fsl",
+            "program": "${workspaceFolder}/linux/build/debug/fsl",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/build-debug",
+            "cwd": "${workspaceFolder}/linux/build/debug",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",

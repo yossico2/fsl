@@ -17,7 +17,7 @@ sudo apt-get install libtinyxml2-dev
 You can use the provided script to build for different configurations and targets:
 
 ```bash
-# Default (Debug, Linux)
+# Default (debug, Linux)
 ./make.sh
 
 # Specify build type (debug or release)
@@ -85,7 +85,7 @@ The `make.sh` script supports several commands for building, testing, cleaning, 
 # Clean build directories
 ./make.sh clean
 
-# Build (default: Debug, Linux)
+# Build (default: debug, Linux)
 ./make.sh
 
 # Run all: clean, build, and test
@@ -112,7 +112,7 @@ The `make.sh` script supports several commands for building, testing, cleaning, 
 The script uses separate build directories for each configuration.
 
 ```bash
-# Default (Debug, Linux)
+# Default (debug, Linux)
 ./make.sh
 
 # Specify build type (debug or release)
@@ -187,7 +187,7 @@ Replace `<path-to-petalinux-gcc>` and `<path-to-petalinux-g++>` with the actual 
 Build as described above, then run:
 
 ```bash
-./build-debug/fsl
+./build/linux/debug/fsl
 ```
 
 ## Testing
@@ -197,7 +197,7 @@ Build as described above, then run:
 Unit tests are written using Catch2. To run all C++ tests:
 
 ```bash
-./build-debug/tests
+./build/linux/debug/tests
 ```
 
 See `tests/test_config.cpp` for a config parser test.
@@ -242,7 +242,7 @@ You can override the UDP configuration from `config.xml` by setting the followin
 Example usage:
 
 ```bash
-FSL_LOCAL_PORT=1234 FSL_REMOTE_IP=1.2.3.4 FSL_REMOTE_PORT=5678 ./build-debug/fsl
+FSL_LOCAL_PORT=1234 FSL_REMOTE_IP=1.2.3.4 FSL_REMOTE_PORT=5678 ./linux/build/debug/fsl
 ```
 
 If set, these variables take precedence over the values in `config.xml`.

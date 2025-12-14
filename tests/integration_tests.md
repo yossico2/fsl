@@ -39,7 +39,7 @@ The integration tests are implemented in `tests/integration_tests.py` using Pyth
    - Make sure FSL is running and listening on the configured UDP and UDS sockets.
    - Example:
      ```bash
-     ./build-debug/fsl
+     ./libux/build/-debug/fsl
      ```
 
 2. **Run the integration test script:**

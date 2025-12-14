@@ -21,7 +21,9 @@ function main() {
 	local instance=0
 	local run_no_docker=0
 
-	local fsldir="${HOME}/dev/elar/elar_fsl/build-debug"
+	# Source env.sh to get BUILD_TARGET_DIR
+	source "$(dirname "$0")/env.sh"
+	local fsldir="${BUILD_TARGET_DIR}"
 
 	# parse args in any order
 	for arg in "$@"; do

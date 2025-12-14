@@ -1,0 +1,30 @@
+{
+    "buildType": {
+        "default": "debug",
+        "description": "The build type",
+        "items": [
+            {
+                "label": "Debug",
+                "value": "debug"
+            },
+            {
+                "label": "Release",
+                "value": "release"
+            }
+        ]
+    },
+    "target": {
+        "default": "linux",
+        "description": "The build target platform",
+        "items": [
+            {
+                "label": "Linux",
+                "value": "linux"
+            },
+            {
+                "label": "PetaLinux",
+                "value": "petalinux"
+            }
+        ]
+    }
+}
