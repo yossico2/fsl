@@ -24,7 +24,7 @@ function main() {
 		echo -e "\e[32mClean completed.\e[0m"
 		exit 0
 	elif [[ "$1" == "test" ]]; then
-		export SENSOR_INSTANCE=1 # Example instance number
+		export SENSOR_INSTANCE=0 # example instance number
 		echo -e "\e[97;44mRunning unit tests...\e[0m"
 		if [[ -d build-debug ]]; then
 			(cd build-debug && ./tests)

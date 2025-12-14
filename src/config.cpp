@@ -176,8 +176,8 @@ AppConfig load_config(const char *filename, int instance)
         }
     }
 
-    // If instance > 0, rewrite UDS paths
-    if (instance > 0)
+    // If instance >= 0, rewrite UDS paths
+    if (instance >= 0)
     {
         rewrite_uds_paths(config, instance);
     }

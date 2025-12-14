@@ -66,8 +66,8 @@ def test_udp_to_uds():
     """Test: GSL sends UDP, FSL routes to correct UDS client."""
     fsl_udp_ip = "127.0.0.1"
     fsl_udp_port = 9910
-    instance = int(os.environ.get("SENSOR_INSTANCE", "0"))
-    prefix = f"/tmp/sensor{instance}/" if instance > 0 else "/tmp/"
+    instance = int(os.environ.get("SENSOR_INSTANCE", "-1"))
+    prefix = f"/tmp/sensor{instance}/" if instance >= 0 else "/tmp/"
     app_uds_clients = [
         prefix + "FSW_UL",
         prefix + "UL_PLMG",
@@ -95,8 +95,8 @@ def test_uds_to_udp():
     """Test: App sends to UDS server, FSL routes to UDP (GSL)."""
     gcom_udp_ip = "127.0.0.1"
     gcom_udp_port = 9010
-    instance = int(os.environ.get("SENSOR_INSTANCE", "0"))
-    prefix = f"/tmp/sensor{instance}/" if instance > 0 else "/tmp/"
+    instance = int(os.environ.get("SENSOR_INSTANCE", "-1"))
+    prefix = f"/tmp/sensor{instance}/" if instance >= 0 else "/tmp/"
     app_uds_paths = [
         prefix + "FSW_HIGH_DL",
         prefix + "DL_PLMG_H",

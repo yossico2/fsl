@@ -5,8 +5,9 @@
 
 inline int get_instance_from_args_env(int argc, char *argv[])
 {
-    int instance = 0;
-    // Check command line args
+    int instance = -1;
+
+    // check command line args
     for (int i = 1; i < argc; ++i)
     {
         if ((strcmp(argv[i], "-i") == 0 || strcmp(argv[i], "--instance") == 0) && i + 1 < argc)
@@ -15,18 +16,20 @@ inline int get_instance_from_args_env(int argc, char *argv[])
             break;
         }
         // Accept a single positional integer argument
-        if (instance == 0 && argc == 2 && std::atoi(argv[1]) > 0)
+        if (instance < 0 && argc == 2 && std::atoi(argv[1]) > 0)
         {
             instance = std::atoi(argv[1]);
             break;
         }
     }
-    // If not set, check env
-    if (instance == 0)
+
+    // if not set, check env
+    if (instance < 0)
     {
         const char *env = std::getenv("SENSOR_INSTANCE");
         if (env)
             instance = std::atoi(env);
     }
+
     return instance;
 }

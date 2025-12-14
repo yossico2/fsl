@@ -54,4 +54,4 @@ struct AppConfig
     std::map<std::string, CtrlUdsConfig> ctrl_uds_name;
 };
 
-AppConfig load_config(const char *filename, int instance = 0); ///< Parses config.xml and returns AppConfig, optionally rewriting UDS paths for instance
+AppConfig load_config(const char *filename, int instance = -1); ///< Parses config.xml and returns AppConfig, optionally rewriting UDS paths for instance
