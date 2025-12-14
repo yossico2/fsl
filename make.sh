@@ -40,6 +40,8 @@ function main() {
 					TARGET="linux"
 				elif [[ -n "${2}" && ( "${2}" == "petalinux" || "${2}" == "PetaLinux" ) ]]; then
 					TARGET="petalinux"
+					export PETALINUX_C_COMPILER="/${HOME}/dev/petalinux/components/yocto/targets/aarch64-xilinx-linux/toolchain/bin/aarch64-xilinx-linux-gnu-gcc"
+					export PETALINUX_CXX_COMPILER="/${HOME}/dev/petalinux/components/yocto/targets/aarch64-xilinx-linux/toolchain/bin/aarch64-xilinx-linux-gnu-g++"
 				else
 					echo "Unknown target: ${2}. Use 'linux' or 'petalinux'."
 					exit 1
