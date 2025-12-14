@@ -23,8 +23,8 @@ def send_udp_to_fcom(opcode, payload, udp_ip, udp_port):
 
 def send_uds_to_fcom(uds_path, payload):
     """Simulate app: Send payload to FSL UDS server socket."""
-    # Ensure parent directory exists if SENSOR_INSTANCE is set
-    instance = os.environ.get("SENSOR_INSTANCE")
+    # Ensure parent directory exists if STATEFULSET_INDEX is set
+    instance = os.environ.get("STATEFULSET_INDEX")
     if instance:
         parent = os.path.dirname(uds_path)
         if not os.path.exists(parent):
@@ -36,8 +36,8 @@ def send_uds_to_fcom(uds_path, payload):
 
 def receive_uds(uds_path, timeout=2):
     """Simulate app: Receive from FSL UDS client socket."""
-    # Ensure parent directory exists if SENSOR_INSTANCE is set
-    instance = os.environ.get("SENSOR_INSTANCE")
+    # Ensure parent directory exists if STATEFULSET_INDEX is set
+    instance = os.environ.get("STATEFULSET_INDEX")
     if instance:
         parent = os.path.dirname(uds_path)
         if not os.path.exists(parent):
@@ -66,7 +66,7 @@ def test_udp_to_uds():
     """Test: GSL sends UDP, FSL routes to correct UDS client."""
     fsl_udp_ip = "127.0.0.1"
     fsl_udp_port = 9910
-    instance = int(os.environ.get("SENSOR_INSTANCE", "-1"))
+    instance = int(os.environ.get("STATEFULSET_INDEX", "-1"))
     prefix = f"/tmp/sensor-{instance}/" if instance >= 0 else "/tmp/"
     app_uds_clients = [
         prefix + "FSW_UL",
@@ -95,7 +95,7 @@ def test_uds_to_udp():
     """Test: App sends to UDS server, FSL routes to UDP (GSL)."""
     gcom_udp_ip = "127.0.0.1"
     gcom_udp_port = 9010
-    instance = int(os.environ.get("SENSOR_INSTANCE", "-1"))
+    instance = int(os.environ.get("STATEFULSET_INDEX", "-1"))
     prefix = f"/tmp/sensor-{instance}/" if instance >= 0 else "/tmp/"
     app_uds_paths = [
         prefix + "FSW_HIGH_DL",

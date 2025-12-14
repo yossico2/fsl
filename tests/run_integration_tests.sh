@@ -4,7 +4,7 @@
 
 set -e
 
-export SENSOR_INSTANCE=0
+export STATEFULSET_INDEX=${STATEFULSET_INDEX:-0}
 
 cd "$(dirname "$0")/../build-debug"
 
@@ -13,12 +13,12 @@ LOGDIR="../logs"
 mkdir -p "${LOGDIR}"
 
 # Remove previous log file if it exists
-if [ -f "${LOGDIR}/fsl-${SENSOR_INSTANCE}.log" ]; then
-	rm -f "${LOGDIR}/fsl-${SENSOR_INSTANCE}.log"
+if [ -f "${LOGDIR}/fsl-${STATEFULSET_INDEX}.log" ]; then
+	rm -f "${LOGDIR}/fsl-${STATEFULSET_INDEX}.log"
 fi
 
-# Start FSL in background, redirect output to logs/fsl-${SENSOR_INSTANCE}.log
-./fsl >"${LOGDIR}/fsl-${SENSOR_INSTANCE}.log" 2>&1 &
+# Start FSL in background, redirect output to logs/fsl-${STATEFULSET_INDEX}.log
+./fsl >"${LOGDIR}/fsl-${STATEFULSET_INDEX}.log" 2>&1 &
 FSL_PID=$!
 
 # Wait for FSL to initialize

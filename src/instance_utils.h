@@ -26,7 +26,7 @@ inline int get_instance_from_args_env(int argc, char *argv[])
     // if not set, check env
     if (instance < 0)
     {
-        const char *env = std::getenv("SENSOR_INSTANCE");
+        const char *env = std::getenv("STATEFULSET_INDEX");
         if (env)
             instance = std::atoi(env);
     }

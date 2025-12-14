@@ -60,7 +60,7 @@ The integration tests are implemented in `tests/integration_tests.py` using Pyth
 ## Notes
 
 - Ensure the UDS and UDP socket paths/ports in the test script match those in your `config.xml`.
-- The environment variable `SENSOR_INSTANCE` can be set to namespace UDS paths for multi-instance testing (e.g., `export SENSOR_INSTANCE=1`).
+- The environment variable `STATEFULSET_INDEX` can be set to namespace UDS paths for multi-instance testing (e.g., `export STATEFULSET_INDEX=1`).
 - You can extend the script to simulate more apps, opcodes, or edge cases as needed.
 
 ---

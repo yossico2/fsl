@@ -11,7 +11,6 @@ print_usage() {
 	echo "  NO_DOCKER=1   Run FSL directly (no Docker), equivalent to -nd"
 }
 
-
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
 	print_usage
 	exit 0
@@ -52,7 +51,7 @@ function main() {
 			done
 		fi
 		cd ./build-debug || exit 1
-		nohup ./fsl "${instance}" > "${logdir}/fsl-${instance}.log" 2>&1 &
+		nohup ./fsl "${instance}" >"${logdir}/fsl-${instance}.log" 2>&1 &
 		if [[ $? -ne 0 ]]; then
 			echo "Error: Failed to start fsl in background" >&2
 			exit 1
@@ -62,7 +61,7 @@ function main() {
 	else
 		docker run --rm ${detach} -it --network=host \
 			--name "fsl-${instance}" \
-			-e SENSOR_INSTANCE="${instance}" \
+			-e STATEFULSET_INDEX="${instance}" \
 			fsl
 	fi
 }
