@@ -1,12 +1,10 @@
 # Catch2 test target
-
-# Catch2 test target
 add_executable(tests
     tests/test_config.cpp
     src/config.cpp
+    src/sdk/tinyxml2/tinyxml2.cpp
 )
-target_include_directories(tests PRIVATE tests src)
-target_link_libraries(tests PRIVATE tinyxml2)
+target_include_directories(tests PRIVATE tests src src/sdk/tinyxml2)
 
 cmake_minimum_required(VERSION 3.10)
 project(fsl)
@@ -30,9 +28,9 @@ else()
     message(STATUS "Compiling for Ubuntu/Linux")
 endif()
 
-add_executable(fsl src/main.cpp src/config.cpp src/uds.cpp src/udp.cpp src/app.cpp src/logger.cpp)
 
-target_link_libraries(fsl PRIVATE tinyxml2)
+add_executable(fsl src/main.cpp src/config.cpp src/uds.cpp src/udp.cpp src/app.cpp src/logger.cpp src/sdk/tinyxml2/tinyxml2.cpp)
+target_include_directories(fsl PRIVATE src src/sdk/tinyxml2)
 
 # Add include directories
 include_directories(src)
