@@ -116,7 +116,7 @@ function main() {
 		;;
 	image)
 		echo -e "\e[97;44mBuilding Docker image...\e[0m"
-		docker build -t fsl .
+		docker build --no-cache -t fsl .
 		echo -e "\e[32mDocker image build completed.\e[0m"
 		exit 0
 		;;
