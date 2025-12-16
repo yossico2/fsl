@@ -26,7 +26,11 @@ void override_config_from_env(AppConfig &config)
 
     if (const char *env = std::getenv("LOGGING_LEVEL"))
     {
-        config.logging_level = env;
+        std::string lvl(env);
+        // Convert to uppercase for normalization
+        for (auto &c : lvl)
+            c = toupper(c);
+        config.logging_level = lvl;
     }
 }
 

@@ -3,6 +3,11 @@
 LogLevel Logger::currentLevel = LogLevel::INFO;
 std::mutex Logger::logMutex;
 
+bool Logger::isDebugEnabled()
+{
+    return currentLevel >= LogLevel::DEBUG;
+}
+
 void Logger::setLevel(LogLevel level)
 {
     currentLevel = level;
