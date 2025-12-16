@@ -132,6 +132,10 @@ def test_uds_to_udp():
             data, addr = s.recvfrom(4096)
             print("Downlink: received message from UDP:", data)
             assert data is not None, f"No UDP data received for {uds_server_path}"
+            # Parse GslFslHeader: opcode (uint16), length (uint16), seq_id (uint32), all little-endian
+            if data and len(data) >= 8:
+                opcode, length, seq_id = struct.unpack("<HHI", data[:8])
+                print(f"GslFslHeader: opcode={opcode}, seq_id={seq_id}")
         except socket.timeout:
             print(f"No UDP data received for {uds_server_path}")
             assert False, f"No UDP data received for {uds_server_path}"
