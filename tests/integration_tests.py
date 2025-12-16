@@ -22,7 +22,7 @@ def send_udp_to_fcom(opcode, payload, udp_ip, udp_port):
 
 
 def send_uds_to_fcom(uds_path, payload):
-    """Simulate app: Send payload to FSL UDS server socket."""
+    """Simulate app: Send payload (bytes) to FSL UDS server socket."""
     # Ensure parent directory exists if STATEFULSET_INDEX is set
     instance = os.environ.get("STATEFULSET_INDEX")
     if instance:
@@ -30,7 +30,7 @@ def send_uds_to_fcom(uds_path, payload):
         if not os.path.exists(parent):
             os.makedirs(parent, exist_ok=True)
     s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-    s.sendto(payload.encode(), uds_path)
+    s.sendto(payload, uds_path)
     s.close()
 
 
@@ -103,15 +103,31 @@ def test_uds_to_udp():
         prefix + "DL_EL_H",
         # Add more app UDS paths as needed
     ]
+
     for i, uds_server_path in enumerate(app_uds_paths, start=1):
-        payload = f"hello from app{i}"
+        payload = f"hello from app{i}".encode()
+
         # Start UDP receiver (GSL)
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.bind((gcom_udp_ip, gcom_udp_port))
         s.settimeout(2)
         print(f"Downlink: sending message to UDS server {uds_server_path}...")
-        send_uds_to_fcom(uds_server_path, payload)
+
+        # Compose message: FSW sends only payload, PLMG/EL send plmg_fcom_Header + payload
+        if "PLMG" in uds_server_path or "EL" in uds_server_path:
+            # plmg_fcom_Header: opcode (uint8), error (uint8), seq_id (uint16), length (uint16)
+            opcode = 42  # test opcode
+            error = 0
+            seq_id = 1
+            length = len(payload)
+            header = struct.pack("<BBHH", opcode, error, seq_id, length)
+            msg = header + payload
+        else:
+            msg = payload
+
+        send_uds_to_fcom(uds_server_path, msg)
         print("Downlink: receiving message from UDP...")
+
         try:
             data, addr = s.recvfrom(4096)
             print("Downlink: received message from UDP:", data)

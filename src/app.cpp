@@ -354,15 +354,7 @@ void App::run()
 
                     std::vector<uint8_t> downlink_data(buffer + sizeof(GslFslHeader), buffer + sizeof(GslFslHeader) + n);
 
-                    processDownlinkMessage(server_name, downlink_data);
-
-                    // Continue with UDP send
-                    GslFslHeader hdr;
-                    hdr.opcode = 0; // Downlink opcode
-                    hdr.length = n;
-                    hdr.seq_id = msg_id_counter++;
-                    memcpy(buffer, &hdr, sizeof(GslFslHeader));
-                    ssize_t sent = udp_.send(buffer, n + sizeof(GslFslHeader));
+                    int sent = processDownlinkMessage(server_name, downlink_data, msg_id_counter);
                     if (sent < 0)
                     {
                         Logger::error("Failed to send UDP packet from UDS server index " + std::to_string(i));
@@ -479,41 +471,102 @@ void App::processELCtrlRequest(std::vector<uint8_t> &data)
 }
 
 // --- Downlink message router ---
-void App::processDownlinkMessage(const std::string &server_name, std::vector<uint8_t> &data)
+// --- Downlink message router ---
+// Returns number of bytes sent, or <0 on error
+int App::processDownlinkMessage(const std::string &server_name, std::vector<uint8_t> &data, uint32_t &msg_id_counter)
 {
     if (server_name == "FSW_HIGH_DL" || server_name == "FSW_LOW_DL")
     {
-        processFSWDownlink(data);
+        return processFSWDownlink(data, msg_id_counter);
     }
     else if (server_name == "DL_PLMG_H" || server_name == "DL_PLMG_L")
     {
-        processPLMGDownlink(data);
+        return processPLMGDownlink(data, msg_id_counter);
     }
     else if (server_name == "DL_EL_H" || server_name == "DL_EL_L")
     {
-        processELDownlink(data);
+        return processELDownlink(data, msg_id_counter);
     }
     else
     {
         Logger::info("Received downlink from server: '" + server_name + "', bytes=" + std::to_string(data.size()));
+        // Default: send with opcode 0
+        char buffer[4096];
+        GslFslHeader hdr;
+        hdr.opcode = 0;
+        hdr.length = data.size();
+        hdr.seq_id = msg_id_counter++;
+        memcpy(buffer, &hdr, sizeof(GslFslHeader));
+        memcpy(buffer + sizeof(GslFslHeader), data.data(), data.size());
+        return udp_.send(buffer, data.size() + sizeof(GslFslHeader));
     }
 }
 
 // --- Downlink handlers ---
-void App::processFSWDownlink(std::vector<uint8_t> &data)
+// Returns number of bytes sent, or <0 on error
+int App::processFSWDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter)
 {
     Logger::info("[DOWNLINK] Processing FSW downlink, bytes=" + std::to_string(data.size()));
-    // TODO: Implement FSW downlink handling
+
+    // FSW: no header, just payload
+    char buffer[4096];
+    GslFslHeader hdr;
+    hdr.opcode = 0; // No opcode in payload
+    hdr.length = data.size();
+    hdr.seq_id = msg_id_counter++;
+    memcpy(buffer, &hdr, sizeof(GslFslHeader));
+    memcpy(buffer + sizeof(GslFslHeader), data.data(), data.size());
+    return udp_.send(buffer, data.size() + sizeof(GslFslHeader));
 }
 
-void App::processPLMGDownlink(std::vector<uint8_t> &data)
+// Returns number of bytes sent, or <0 on error
+int App::processPLMGDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter)
 {
     Logger::info("[DOWNLINK] Processing PLMG downlink, bytes=" + std::to_string(data.size()));
-    // TODO: Implement PLMG downlink handling
+
+    // PLMG: header + payload, header is plmg_fcom_Header
+    if (data.size() < sizeof(plmg_fcom_Header))
+    {
+        Logger::error("PLMG downlink too short for header");
+        return -1;
+    }
+
+    const plmg_fcom_Header *hdr_in = reinterpret_cast<const plmg_fcom_Header *>(data.data());
+    uint16_t opcode = hdr_in->opcode;
+    const uint8_t *payload = data.data() + sizeof(plmg_fcom_Header);
+    size_t payload_len = data.size() - sizeof(plmg_fcom_Header);
+    char buffer[4096];
+    GslFslHeader hdr;
+    hdr.opcode = opcode;
+    hdr.length = payload_len;
+    hdr.seq_id = msg_id_counter++;
+    memcpy(buffer, &hdr, sizeof(GslFslHeader));
+    memcpy(buffer + sizeof(GslFslHeader), payload, payload_len);
+    return udp_.send(buffer, payload_len + sizeof(GslFslHeader));
 }
 
-void App::processELDownlink(std::vector<uint8_t> &data)
+// Returns number of bytes sent, or <0 on error
+int App::processELDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter)
 {
     Logger::info("[DOWNLINK] Processing EL downlink, bytes=" + std::to_string(data.size()));
-    // TODO: Implement EL downlink handling
+
+    // EL: header + payload, header is plmg_fcom_Header
+    if (data.size() < sizeof(plmg_fcom_Header))
+    {
+        Logger::error("EL downlink too short for header");
+        return -1;
+    }
+
+    const plmg_fcom_Header *hdr_in = reinterpret_cast<const plmg_fcom_Header *>(data.data());
+    uint16_t opcode = hdr_in->opcode;
+    const uint8_t *payload = data.data() + sizeof(plmg_fcom_Header);
+    size_t payload_len = data.size() - sizeof(plmg_fcom_Header);
+    char buffer[4096];
+    GslFslHeader hdr;
+    hdr.opcode = opcode;
+    hdr.length = payload_len;
+    hdr.seq_id = msg_id_counter++;
+    memcpy(buffer, &hdr, sizeof(GslFslHeader));
+    memcpy(buffer + sizeof(GslFslHeader), payload, payload_len);
+    return udp_.send(buffer, payload_len + sizeof(GslFslHeader));
 }

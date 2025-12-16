@@ -46,10 +46,10 @@ public:
     void processPLMGCtrlRequest(std::vector<uint8_t> &data);
     void processELCtrlRequest(std::vector<uint8_t> &data);
 
-    void processDownlinkMessage(const std::string &server_name, std::vector<uint8_t> &data);
-    void processFSWDownlink(std::vector<uint8_t> &data);
-    void processPLMGDownlink(std::vector<uint8_t> &data);
-    void processELDownlink(std::vector<uint8_t> &data);
+    int processDownlinkMessage(const std::string &server_name, std::vector<uint8_t> &data, uint32_t &msg_id_counter);
+    int processFSWDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter);
+    int processPLMGDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter);
+    int processELDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter);
 
 private:
     AppConfig config_;
