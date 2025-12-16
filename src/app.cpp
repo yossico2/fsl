@@ -348,31 +348,15 @@ void App::run()
                 int n = uds_servers_[i]->receive(buffer + sizeof(GslFslHeader), sizeof(buffer) - sizeof(GslFslHeader));
                 if (n > 0)
                 {
-                    // Find the server name for this UDS server
                     std::string server_name;
                     if (i < config_.uds_servers.size())
                         server_name = config_.uds_servers[i].name;
 
                     std::vector<uint8_t> downlink_data(buffer + sizeof(GslFslHeader), buffer + sizeof(GslFslHeader) + n);
 
-                    if (server_name == "FSW_HIGH_DL" || server_name == "FSW_LOW_DL")
-                    {
-                        processFSWDownlink(downlink_data);
-                    }
-                    else if (server_name == "DL_PLMG_H" || server_name == "DL_PLMG_L")
-                    {
-                        processPLMGDownlink(downlink_data);
-                    }
-                    else if (server_name == "DL_EL_H" || server_name == "DL_EL_L")
-                    {
-                        processELDownlink(downlink_data);
-                    }
-                    else
-                    {
-                        Logger::info("Received downlink from server: '" + server_name + "', bytes=" + std::to_string(n));
-                    }
+                    processDownlinkMessage(server_name, downlink_data);
 
-                    // Continue with UDP send as before
+                    // Continue with UDP send
                     GslFslHeader hdr;
                     hdr.opcode = 0; // Downlink opcode
                     hdr.length = n;
@@ -492,6 +476,27 @@ void App::processELCtrlRequest(std::vector<uint8_t> &data)
                  ", length=" + std::to_string(hdr->length) +
                  ", seq_id=" + std::to_string(hdr->seq_id));
     // lilo:TODO: Implement EL control request handling
+}
+
+// --- Downlink message router ---
+void App::processDownlinkMessage(const std::string &server_name, std::vector<uint8_t> &data)
+{
+    if (server_name == "FSW_HIGH_DL" || server_name == "FSW_LOW_DL")
+    {
+        processFSWDownlink(data);
+    }
+    else if (server_name == "DL_PLMG_H" || server_name == "DL_PLMG_L")
+    {
+        processPLMGDownlink(data);
+    }
+    else if (server_name == "DL_EL_H" || server_name == "DL_EL_L")
+    {
+        processELDownlink(data);
+    }
+    else
+    {
+        Logger::info("Received downlink from server: '" + server_name + "', bytes=" + std::to_string(data.size()));
+    }
 }
 
 // --- Downlink handlers ---

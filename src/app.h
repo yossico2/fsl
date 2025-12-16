@@ -46,6 +46,7 @@ public:
     void processPLMGCtrlRequest(std::vector<uint8_t> &data);
     void processELCtrlRequest(std::vector<uint8_t> &data);
 
+    void processDownlinkMessage(const std::string &server_name, std::vector<uint8_t> &data);
     void processFSWDownlink(std::vector<uint8_t> &data);
     void processPLMGDownlink(std::vector<uint8_t> &data);
     void processELDownlink(std::vector<uint8_t> &data);
