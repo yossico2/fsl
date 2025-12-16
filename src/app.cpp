@@ -47,6 +47,16 @@ App::App(const AppConfig &config)
     : config_(config),
       udp_(config_.udp_local_port, config_.udp_remote_ip, config_.udp_remote_port)
 {
+    // Set logger level from config
+    auto toLogLevel = [](const std::string &lvl) -> LogLevel
+    {
+        if (lvl == "DEBUG")
+            return LogLevel::DEBUG;
+        if (lvl == "INFO")
+            return LogLevel::INFO;
+        return LogLevel::ERROR;
+    };
+    Logger::setLevel(toLogLevel(config.logging_level));
     // Register signal handlers for graceful shutdown
     std::signal(SIGINT, App::signalHandler);
     std::signal(SIGTERM, App::signalHandler);

@@ -13,13 +13,20 @@ void override_config_from_env(AppConfig &config)
     {
         config.udp_local_port = std::atoi(env);
     }
+
     if (const char *env = std::getenv("FSL_REMOTE_IP"))
     {
         config.udp_remote_ip = env;
     }
+
     if (const char *env = std::getenv("FSL_REMOTE_PORT"))
     {
         config.udp_remote_port = std::atoi(env);
+    }
+
+    if (const char *env = std::getenv("LOGGING_LEVEL"))
+    {
+        config.logging_level = env;
     }
 }
 
