@@ -540,7 +540,7 @@ int App::processFSWDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter
 {
     if (Logger::isDebugEnabled())
     {
-        Logger::debug("[DOWNLINK] Processing FSW downlink, bytes=" + std::to_string(data.size()));
+        Logger::debug("[DOWNLINK] FSW: opcode=0, sensor_id=" + std::to_string(config_.sensor_id) + ", payload_size=" + std::to_string(data.size()));
     }
 
     // FSW: no header, just payload
@@ -560,7 +560,8 @@ int App::processPLMGDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counte
 {
     if (Logger::isDebugEnabled())
     {
-        Logger::debug("[DOWNLINK] Processing PLMG downlink, bytes=" + std::to_string(data.size()));
+        const plmg_fcom_Header *hdr_in = reinterpret_cast<const plmg_fcom_Header *>(data.data());
+        Logger::debug("[DOWNLINK] PLMG: opcode=" + std::to_string(hdr_in->opcode) + ", sensor_id=" + std::to_string(config_.sensor_id) + ", payload_size=" + std::to_string(data.size() - PLMG_FCOM_HEADER_SIZE));
     }
 
     // PLMG: header + payload, header is plmg_fcom_Header
@@ -590,7 +591,8 @@ int App::processELDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter)
 {
     if (Logger::isDebugEnabled())
     {
-        Logger::debug("[DOWNLINK] Processing EL downlink, bytes=" + std::to_string(data.size()));
+        const plmg_fcom_Header *hdr_in = reinterpret_cast<const plmg_fcom_Header *>(data.data());
+        Logger::debug("[DOWNLINK] EL: opcode=" + std::to_string(hdr_in->opcode) + ", sensor_id=" + std::to_string(config_.sensor_id) + ", payload_size=" + std::to_string(data.size() - PLMG_FCOM_HEADER_SIZE));
     }
 
     // EL: header + payload, header is plmg_fcom_Header
