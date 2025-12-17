@@ -9,12 +9,15 @@ import time
 import struct
 import threading
 
+# GslFslHeader: opcode (uint16), sensor_id (uint16), length (uint32), seq_id (uint32)
+FSL_GSL_HEADER_SIZE = struct.calcsize("<HHII")
 
-def send_udp_to_fcom(opcode, payload, udp_ip, udp_port):
+
+def send_udp_to_fcom(opcode, payload, udp_ip, udp_port, sensor_id=0):
     """Simulate GSL: Send UDP packet to FSL with header and payload."""
-    # Example header: opcode (uint16), length (uint16), id (uint32)
+    # GslFslHeader: opcode (uint16), sensor_id (uint16), length (uint32), seq_id (uint32)
     msg_seq_id = 1
-    header = struct.pack("<HHI", opcode, len(payload), msg_seq_id)
+    header = struct.pack("<HHII", opcode, sensor_id, len(payload), msg_seq_id)
     packet = header + payload.encode()
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.sendto(packet, (udp_ip, udp_port))
@@ -132,10 +135,15 @@ def test_uds_to_udp():
             data, addr = s.recvfrom(4096)
             print("Downlink: received message from UDP:", data)
             assert data is not None, f"No UDP data received for {uds_server_path}"
-            # Parse GslFslHeader: opcode (uint16), length (uint16), seq_id (uint32), all little-endian
-            if data and len(data) >= 8:
-                opcode, length, seq_id = struct.unpack("<HHI", data[:8])
-                print(f"GslFslHeader: opcode={opcode}, seq_id={seq_id}")
+            # Parse GslFslHeader: opcode (uint16), sensor_id (uint16), length (uint32), seq_id (uint32), all little-endian
+            if data and len(data) >= FSL_GSL_HEADER_SIZE:
+                # GslFslHeader: opcode (2 bytes), sensor_id (2 bytes), length (4 bytes), seq_id (4 bytes)
+                opcode, sensor_id, length, seq_id = struct.unpack(
+                    "<HHII", data[:FSL_GSL_HEADER_SIZE]
+                )
+                print(
+                    f"GslFslHeader: opcode={opcode}, sensor_id={sensor_id}, length={length}, seq_id={seq_id}"
+                )
         except socket.timeout:
             print(f"No UDP data received for {uds_server_path}")
             assert False, f"No UDP data received for {uds_server_path}"
