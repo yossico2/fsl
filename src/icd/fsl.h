@@ -6,9 +6,10 @@
 /// GSL-FSL protocol message header (UDP framing)
 typedef struct GslFslHeader
 {
-    uint16_t opcode; ///< Message opcode (application-specific)
-    uint16_t length; ///< Payload length (bytes)
-    uint32_t seq_id; ///< Unique message ID (monotonic)
+    uint16_t opcode;    ///< Message opcode (application-specific)
+    uint16_t sensor_id; ///< Sensor identifier
+    uint32_t length;    ///< Payload length (bytes)
+    uint32_t seq_id;    ///< Unique message ID (monotonic)
 } GslFslHeader;
 
 /// Size of GslFslHeader struct (for framing)

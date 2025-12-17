@@ -76,7 +76,9 @@ function main() {
 		# Kill all previous fsl for this instance
 		# Use pgrep to find and kill all fsl processes for this instance
 		prev_pids=$(pgrep -f "./fsl ${instance}")
-		echo "Previous fsl instances for instance ${instance}: ${prev_pids}"
+		if [[ -n "${prev_pids}" ]]; then
+			echo "Previous fsl instances for instance ${instance}: ${prev_pids}"
+		fi
 		if [[ -n "${prev_pids}" ]]; then
 			for pid in ${prev_pids}; do
 				kill "${pid}"

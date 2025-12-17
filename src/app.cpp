@@ -510,38 +510,19 @@ void App::processELCtrlRequest(std::vector<uint8_t> &data)
 }
 
 // --- Downlink message router ---
-// --- Downlink message router ---
 // Returns number of bytes sent, or <0 on error
 int App::processDownlinkMessage(const std::string &server_name, std::vector<uint8_t> &data, uint32_t &msg_id_counter)
 {
     if (server_name == "FSW_HIGH_DL" || server_name == "FSW_LOW_DL")
-    {
         return processFSWDownlink(data, msg_id_counter);
-    }
-    else if (server_name == "DL_PLMG_H" || server_name == "DL_PLMG_L")
-    {
+
+    if (server_name == "DL_PLMG_H" || server_name == "DL_PLMG_L")
         return processPLMGDownlink(data, msg_id_counter);
-    }
-    else if (server_name == "DL_EL_H" || server_name == "DL_EL_L")
-    {
+
+    if (server_name == "DL_EL_H" || server_name == "DL_EL_L")
         return processELDownlink(data, msg_id_counter);
-    }
-    else
-    {
-        if (Logger::isDebugEnabled())
-        {
-            Logger::debug("Received downlink from server: '" + server_name + "', bytes=" + std::to_string(data.size()));
-        }
-        // Default: send with opcode 0
-        char buffer[4096];
-        GslFslHeader hdr;
-        hdr.opcode = 0;
-        hdr.length = data.size();
-        hdr.seq_id = msg_id_counter++;
-        memcpy(buffer, &hdr, sizeof(GslFslHeader));
-        memcpy(buffer + sizeof(GslFslHeader), data.data(), data.size());
-        return udp_.send(buffer, data.size() + sizeof(GslFslHeader));
-    }
+
+    return -1;
 }
 
 // --- Downlink handlers ---
