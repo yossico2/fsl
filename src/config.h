@@ -38,6 +38,7 @@ struct UdsServerConfig
 
 struct AppConfig
 {
+    int sensor_id;             ///< Sensor identifier
     int udp_local_port;        ///< Local UDP port for FSL
     std::string udp_remote_ip; ///< Remote IP address for UDP communication
     int udp_remote_port;       ///< Remote UDP port

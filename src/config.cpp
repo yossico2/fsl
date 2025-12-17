@@ -9,6 +9,11 @@ using namespace tinyxml2;
 
 void override_config_from_env(AppConfig &config)
 {
+    if (const char *env = std::getenv("FSL_SENSOR_ID"))
+    {
+        config.sensor_id = std::atoi(env);
+    }
+
     if (const char *env = std::getenv("FSL_LOCAL_PORT"))
     {
         config.udp_local_port = std::atoi(env);
@@ -112,6 +117,10 @@ AppConfig load_config(const char *filename, int instance)
     {
         throw std::runtime_error("Missing <udp> section");
     }
+    // Parse sensor_id from top level (optional, default 1)
+    XMLElement *sensor_id_el = root->FirstChildElement("sensor_id");
+    if (sensor_id_el)
+        sensor_id_el->QueryIntText(&config.sensor_id);
 
     // --- Parse Data Link UDS Settings ---
     XMLElement *uds_node = root->FirstChildElement("data_link_uds");

@@ -225,7 +225,11 @@ void App::signalHandler(int signum)
 
 void App::run()
 {
-    Logger::info("App Service Running (XML Config). UDP: " + std::to_string(config_.udp_local_port) + " <-> " + config_.udp_remote_ip + ":" + std::to_string(config_.udp_remote_port));
+    Logger::info("FSL Running (sensor_id: " +
+                 std::to_string(config_.sensor_id) +
+                 ") UDP: " + std::to_string(config_.udp_local_port) +
+                 " <-> " + config_.udp_remote_ip + ":" + std::to_string(config_.udp_remote_port));
+
     std::string uds_servers_list = "UDS Servers (downlink):\n";
     for (const auto &s : config_.uds_servers)
         uds_servers_list += "  " + s.path + "\n";
@@ -526,6 +530,11 @@ int App::processDownlinkMessage(const std::string &server_name, std::vector<uint
 }
 
 // --- Downlink handlers ---
+
+namespace
+{
+    constexpr size_t PLMG_FCOM_HEADER_SIZE = sizeof(plmg_fcom_Header);
+}
 // Returns number of bytes sent, or <0 on error
 int App::processFSWDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter)
 {
@@ -537,7 +546,8 @@ int App::processFSWDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter
     // FSW: no header, just payload
     char buffer[4096];
     GslFslHeader hdr;
-    hdr.opcode = 0; // No opcode in payload
+    hdr.opcode = 0; // No opcode for FSW downlink
+    hdr.sensor_id = config_.sensor_id;
     hdr.length = data.size();
     hdr.seq_id = msg_id_counter++;
     memcpy(buffer, &hdr, sizeof(GslFslHeader));
@@ -554,7 +564,7 @@ int App::processPLMGDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counte
     }
 
     // PLMG: header + payload, header is plmg_fcom_Header
-    if (data.size() < sizeof(plmg_fcom_Header))
+    if (data.size() < PLMG_FCOM_HEADER_SIZE)
     {
         Logger::error("PLMG downlink too short for header");
         return -1;
@@ -562,11 +572,12 @@ int App::processPLMGDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counte
 
     const plmg_fcom_Header *hdr_in = reinterpret_cast<const plmg_fcom_Header *>(data.data());
     uint16_t opcode = hdr_in->opcode;
-    const uint8_t *payload = data.data() + sizeof(plmg_fcom_Header);
-    size_t payload_len = data.size() - sizeof(plmg_fcom_Header);
+    const uint8_t *payload = data.data() + PLMG_FCOM_HEADER_SIZE;
+    size_t payload_len = data.size() - PLMG_FCOM_HEADER_SIZE;
     char buffer[4096];
     GslFslHeader hdr;
     hdr.opcode = opcode;
+    hdr.sensor_id = config_.sensor_id;
     hdr.length = payload_len;
     hdr.seq_id = msg_id_counter++;
     memcpy(buffer, &hdr, sizeof(GslFslHeader));
@@ -583,7 +594,7 @@ int App::processELDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter)
     }
 
     // EL: header + payload, header is plmg_fcom_Header
-    if (data.size() < sizeof(plmg_fcom_Header))
+    if (data.size() < PLMG_FCOM_HEADER_SIZE)
     {
         Logger::error("EL downlink too short for header");
         return -1;
@@ -591,11 +602,12 @@ int App::processELDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter)
 
     const plmg_fcom_Header *hdr_in = reinterpret_cast<const plmg_fcom_Header *>(data.data());
     uint16_t opcode = hdr_in->opcode;
-    const uint8_t *payload = data.data() + sizeof(plmg_fcom_Header);
-    size_t payload_len = data.size() - sizeof(plmg_fcom_Header);
+    const uint8_t *payload = data.data() + PLMG_FCOM_HEADER_SIZE;
+    size_t payload_len = data.size() - PLMG_FCOM_HEADER_SIZE;
     char buffer[4096];
     GslFslHeader hdr;
     hdr.opcode = opcode;
+    hdr.sensor_id = config_.sensor_id;
     hdr.length = payload_len;
     hdr.seq_id = msg_id_counter++;
     memcpy(buffer, &hdr, sizeof(GslFslHeader));
