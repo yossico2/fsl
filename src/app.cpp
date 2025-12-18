@@ -312,7 +312,7 @@ void App::run()
         fds[1 + uds_count + i].events = POLLIN;
     }
 
-    char buffer[4096];
+    char buffer[DL_MTU];
     uint32_t msg_id_counter = 1;
 
     while (!shutdown_flag_)
@@ -332,6 +332,8 @@ void App::run()
             int n = udp_.receive(buffer, sizeof(buffer), &sender_addr);
             if (n >= (int)GSL_FSL_HEADER_SIZE)
             {
+                // determine UL_Destination from gsl-fsl-header opcode
+                // pill off gsl-fsl header and send only payload via UDS
                 const GslFslHeader *hdr = reinterpret_cast<const GslFslHeader *>(buffer);
                 UL_Destination dest = static_cast<UL_Destination>(hdr->opcode); // opcode is actually destination for uplink
                 std::map<uint16_t, std::string>::const_iterator map_it = config_.ul_uds_mapping.find(static_cast<uint16_t>(dest));
@@ -341,7 +343,7 @@ void App::run()
                     std::map<std::string, std::unique_ptr<UdsSocket>>::iterator client_it = uds_clients_.find(ctrl_uds_name);
                     if (client_it != uds_clients_.end())
                     {
-                        // Forward only the payload (excluding header)
+                        // Forward only the payload (excluding gsl-fsl-header)
                         ssize_t sent = client_it->second->send(buffer + GSL_FSL_HEADER_SIZE, n - GSL_FSL_HEADER_SIZE);
                         if (sent < 0)
                         {
@@ -566,9 +568,10 @@ int App::processFSWDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter
 // Returns number of bytes sent, or <0 on error
 int App::processPLMGDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter)
 {
+    const fcom_datalink_header *hdr_in = reinterpret_cast<const fcom_datalink_header *>(data.data());
+
     if (Logger::isDebugEnabled())
     {
-        const fcom_datalink_header *hdr_in = reinterpret_cast<const fcom_datalink_header *>(data.data());
         Logger::debug("[DOWNLINK] PLMG: opcode=" + std::to_string(hdr_in->opcode) + ", sensor_id=" + std::to_string(config_.sensor_id) + ", payload_size=" + std::to_string(data.size() - FCOM_DATALINK_HEADER_SIZE));
     }
 
@@ -579,7 +582,6 @@ int App::processPLMGDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counte
         return -1;
     }
 
-    const fcom_datalink_header *hdr_in = reinterpret_cast<const fcom_datalink_header *>(data.data());
     uint16_t opcode = hdr_in->opcode;
     const uint8_t *payload = data.data() + FCOM_DATALINK_HEADER_SIZE;
     size_t payload_len = data.size() - FCOM_DATALINK_HEADER_SIZE;
@@ -600,9 +602,10 @@ int App::processPLMGDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counte
 // Returns number of bytes sent, or <0 on error
 int App::processELDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter)
 {
+    const fcom_datalink_header *hdr_in = reinterpret_cast<const fcom_datalink_header *>(data.data());
+
     if (Logger::isDebugEnabled())
     {
-        const fcom_datalink_header *hdr_in = reinterpret_cast<const fcom_datalink_header *>(data.data());
         Logger::debug("[DOWNLINK] EL: opcode=" + std::to_string(hdr_in->opcode) + ", sensor_id=" + std::to_string(config_.sensor_id) + ", payload_size=" + std::to_string(data.size() - FCOM_DATALINK_HEADER_SIZE));
     }
 
@@ -613,7 +616,6 @@ int App::processELDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter)
         return -1;
     }
 
-    const fcom_datalink_header *hdr_in = reinterpret_cast<const fcom_datalink_header *>(data.data());
     uint16_t opcode = hdr_in->opcode;
     const uint8_t *payload = data.data() + FCOM_DATALINK_HEADER_SIZE;
     size_t payload_len = data.size() - FCOM_DATALINK_HEADER_SIZE;

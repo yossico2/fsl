@@ -12,6 +12,8 @@ import threading
 # GslFslHeader: opcode (uint16), sensor_id (uint16), length (uint32), seq_id (uint32)
 GSL_FSL_HEADER_SIZE = struct.calcsize("<HHII")
 
+UL_MTU = 65536
+
 
 def send_udp_to_fcom(opcode, payload, udp_ip, udp_port, sensor_id=0):
     """Simulate GSL: Send UDP packet to FSL with header and payload."""
@@ -51,7 +53,7 @@ def receive_uds(uds_path, timeout=2):
     s.bind(uds_path)
     s.settimeout(timeout)
     try:
-        data, _ = s.recvfrom(4096)
+        data, _ = s.recvfrom(UL_MTU)
         return data
     except socket.timeout:
         return None
@@ -132,7 +134,7 @@ def test_uds_to_udp():
         print("Downlink: receiving message from UDP...")
 
         try:
-            data, addr = s.recvfrom(4096)
+            data, addr = s.recvfrom(UL_MTU)
             print("Downlink: received message from UDP:", data)
             assert data is not None, f"No UDP data received for {uds_server_path}"
             # Parse GslFslHeader: opcode (uint16), sensor_id (uint16), length (uint32), seq_id (uint32), all little-endian
