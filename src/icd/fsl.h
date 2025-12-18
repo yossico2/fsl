@@ -13,7 +13,7 @@ typedef struct GslFslHeader
 } GslFslHeader;
 
 /// Size of GslFslHeader struct (for framing)
-static const size_t FSL_GSL_HEADER_SIZE = sizeof(GslFslHeader);
+static const size_t GSL_FSL_HEADER_SIZE = sizeof(GslFslHeader);
 
 /// FSL operational states
 enum FslStates : uint8_t

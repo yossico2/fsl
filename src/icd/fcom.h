@@ -3,6 +3,9 @@
 #include <cstdint>
 #include <cstddef>
 
+constexpr size_t DL_MTU = 65536;
+constexpr size_t UL_MTU = 65536;
+
 ////////////////////////////////////////////////////////////////////////
 // FCOM-FSW
 ////////////////////////////////////////////////////////////////////////
@@ -51,10 +54,23 @@ typedef enum FCOM_PLMG_ERROR_EN : uint8_t
 } FCOM_PLMG_ERROR_EN;
 
 /// FCOM-PLMG general header
-typedef struct plmg_fcom_Header
+typedef struct plmg_fcom_header
 {
     FCOM_PLMG_OPCODE_EN opcode;
     FCOM_PLMG_ERROR_EN error;
     uint16_t seq_id;
     uint16_t length; /// payload length
-} plmg_fcom_Header;
+} plmg_fcom_header;
+
+static const size_t PLMG_FCOM_HEADER_SIZE = sizeof(plmg_fcom_header);
+
+/// FCOM datalink header
+typedef struct fcom_datalink_header
+{
+    uint32_t opcode : 8;
+    uint32_t reserved : 4;
+    uint32_t seq_id : 20;
+    uint32_t length; /// payload length
+} fcom_datalink_header;
+
+static const size_t FCOM_DATALINK_HEADER_SIZE = sizeof(fcom_datalink_header);

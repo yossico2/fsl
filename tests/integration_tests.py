@@ -10,7 +10,7 @@ import struct
 import threading
 
 # GslFslHeader: opcode (uint16), sensor_id (uint16), length (uint32), seq_id (uint32)
-FSL_GSL_HEADER_SIZE = struct.calcsize("<HHII")
+GSL_FSL_HEADER_SIZE = struct.calcsize("<HHII")
 
 
 def send_udp_to_fcom(opcode, payload, udp_ip, udp_port, sensor_id=0):
@@ -116,9 +116,9 @@ def test_uds_to_udp():
         s.settimeout(2)
         print(f"Downlink: sending message to UDS server {uds_server_path}...")
 
-        # Compose message: FSW sends only payload, PLMG/EL send plmg_fcom_Header + payload
+        # Compose message: FSW sends only payload, PLMG/EL send plmg_fcom_header + payload
         if "PLMG" in uds_server_path or "EL" in uds_server_path:
-            # plmg_fcom_Header: opcode (uint8), error (uint8), seq_id (uint16), length (uint16)
+            # plmg_fcom_header: opcode (uint8), error (uint8), seq_id (uint16), length (uint16)
             opcode = 42  # test opcode
             error = 0
             seq_id = 1
@@ -136,10 +136,10 @@ def test_uds_to_udp():
             print("Downlink: received message from UDP:", data)
             assert data is not None, f"No UDP data received for {uds_server_path}"
             # Parse GslFslHeader: opcode (uint16), sensor_id (uint16), length (uint32), seq_id (uint32), all little-endian
-            if data and len(data) >= FSL_GSL_HEADER_SIZE:
+            if data and len(data) >= GSL_FSL_HEADER_SIZE:
                 # GslFslHeader: opcode (2 bytes), sensor_id (2 bytes), length (4 bytes), seq_id (4 bytes)
                 opcode, sensor_id, length, seq_id = struct.unpack(
-                    "<HHII", data[:FSL_GSL_HEADER_SIZE]
+                    "<HHII", data[:GSL_FSL_HEADER_SIZE]
                 )
                 print(
                     f"GslFslHeader: opcode={opcode}, sensor_id={sensor_id}, length={length}, seq_id={seq_id}"
