@@ -3,6 +3,13 @@
 #include <cstdint>
 #include <cstddef>
 
+enum UL_Destination : uint8_t
+{
+    FSW = 1,
+    PLMG = 2,
+    EL = 3,
+};
+
 /// GSL-FSL protocol message header (UDP framing)
 typedef struct GslFslHeader
 {
