@@ -44,7 +44,7 @@ enum FslCtrlErrorCode : uint8_t
 {
     FSL_CTRL_ERR_NONE = 0,           ///< No error
     FSL_CTRL_ERR_UNKNOWN_OPCODE = 1, ///< Unknown/unsupported opcode
-    FSL_CTRL_ERR_INVALID_PARAM = 2,  ///< Invalid parameter
+    FSL_CTRL_ERR_NOT_ALLOWED = 2,    ///< Not allowed error
     FSL_CTRL_ERR_INTERNAL = 3,       ///< Internal error
     FSL_CTRL_ERR_QUEUE_FULL = 4,     ///< Ctrl message queue is full (buffer overflow)
 };

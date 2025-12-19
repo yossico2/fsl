@@ -517,7 +517,80 @@ void App::processFSWCtrlRequest(std::vector<uint8_t> &data)
                       ", length=" + std::to_string(hdr->length) +
                       ", seq_id=" + std::to_string(hdr->seq_id));
     }
-    // lilo:TODO: Implement FSW control request handling
+    if (data.size() < sizeof(FslCtrlGeneralRequest))
+    {
+        Logger::error("[CTRL] FSW ctrl request too short");
+        return;
+    }
+
+    const FslCtrlGeneralRequest *req = reinterpret_cast<const FslCtrlGeneralRequest *>(data.data());
+    FslCtrlOpcode opcode = req->header.ctrl_opcode;
+    uint32_t seq_id = req->header.ctrl_seq_id;
+
+    std::vector<uint8_t> response;
+
+    switch (opcode)
+    {
+    case FSL_CTRL_OP_SET_OPER:
+    case FSL_CTRL_OP_SET_STANDBY:
+        // Only change state and return general response with no error
+        cbit_state_ = (opcode == FSL_CTRL_OP_SET_OPER) ? FSL_STATE_OPER : FSL_STATE_STANDBY;
+        {
+            FslCtrlGeneralResponse resp = {};
+            resp.header.ctrl_opcode = opcode;
+            resp.header.ctrl_error_code = FSL_CTRL_ERR_NONE;
+            resp.header.ctrl_length = 0;
+            resp.header.ctrl_seq_id = seq_id;
+            response.resize(sizeof(FslCtrlGeneralResponse));
+            memcpy(response.data(), &resp, sizeof(FslCtrlGeneralResponse));
+        }
+        break;
+    case FSL_CTRL_OP_GET_CBIT:
+        // Fill CBIT response
+        {
+            FslCtrlGetCbitResponse resp = {};
+            resp.header.ctrl_opcode = opcode;
+            resp.header.ctrl_error_code = FSL_CTRL_ERR_NONE;
+            resp.header.ctrl_length = sizeof(FslCtrlGetCbitResponse) - sizeof(FslCtrlHeader);
+            resp.header.ctrl_seq_id = seq_id;
+            resp.state = cbit_state_;
+            resp.error_code = FSL_CTRL_ERR_NONE;
+            response.resize(sizeof(FslCtrlGetCbitResponse));
+            memcpy(response.data(), &resp, sizeof(FslCtrlGetCbitResponse));
+        }
+        break;
+    default:
+        // Unknown/unsupported opcode
+        {
+            FslCtrlGeneralResponse resp = {};
+            resp.header.ctrl_opcode = opcode;
+            resp.header.ctrl_error_code = FSL_CTRL_ERR_UNKNOWN_OPCODE;
+            resp.header.ctrl_length = 0;
+            resp.header.ctrl_seq_id = seq_id;
+            response.resize(sizeof(FslCtrlGeneralResponse));
+            memcpy(response.data(), &resp, sizeof(FslCtrlGeneralResponse));
+        }
+        break;
+    }
+
+    // Send response if response socket exists
+    auto it = ctrl_uds_sockets_.find("FSW");
+    if (it != ctrl_uds_sockets_.end() && it->second.response)
+    {
+        ssize_t sent = it->second.response->send(response.data(), response.size());
+        if (sent < 0)
+        {
+            Logger::error("[CTRL] Failed to send FSW ctrl response");
+        }
+        else if (Logger::isDebugEnabled())
+        {
+            Logger::debug("[CTRL] Sent FSW ctrl response, bytes=" + std::to_string(sent));
+        }
+    }
+    else
+    {
+        Logger::error("[CTRL] No FSW ctrl response socket available");
+    }
 }
 
 void App::processPLMGCtrlRequest(std::vector<uint8_t> &data)
@@ -541,53 +614,35 @@ void App::processPLMGCtrlRequest(std::vector<uint8_t> &data)
     // Prepare response buffer
     std::vector<uint8_t> response;
 
+    // Only allow opcodes not reserved for FSW
     switch (opcode)
     {
     case FSL_CTRL_OP_SET_OPER:
     case FSL_CTRL_OP_SET_STANDBY:
-    {
-        // Only change state and return general response with no error
-        cbit_state_ = (opcode == FSL_CTRL_OP_SET_OPER) ? FSL_STATE_OPER : FSL_STATE_STANDBY;
+    case FSL_CTRL_OP_GET_CBIT:
+        // Not allowed from PLMG, return error
         {
             FslCtrlGeneralResponse resp = {};
             resp.header.ctrl_opcode = opcode;
-            resp.header.ctrl_error_code = FSL_CTRL_ERR_NONE;
+            resp.header.ctrl_error_code = FSL_CTRL_ERR_NOT_ALLOWED;
             resp.header.ctrl_length = 0;
             resp.header.ctrl_seq_id = seq_id;
             response.resize(sizeof(FslCtrlGeneralResponse));
             memcpy(response.data(), &resp, sizeof(FslCtrlGeneralResponse));
         }
-
         break;
-    }
-
-    case FSL_CTRL_OP_GET_CBIT:
-    {
-        // Fill CBIT response
-        FslCtrlGetCbitResponse resp = {};
-        resp.header.ctrl_opcode = opcode;
-        resp.header.ctrl_error_code = FSL_CTRL_ERR_NONE;
-        resp.header.ctrl_length = sizeof(FslCtrlGetCbitResponse) - sizeof(FslCtrlHeader);
-        resp.header.ctrl_seq_id = seq_id;
-        resp.state = cbit_state_;
-        resp.error_code = FSL_CTRL_ERR_NONE;
-        response.resize(sizeof(FslCtrlGetCbitResponse));
-        memcpy(response.data(), &resp, sizeof(FslCtrlGetCbitResponse));
-        break;
-    }
-
     default:
-    {
         // Unknown/unsupported opcode
-        FslCtrlGeneralResponse resp = {};
-        resp.header.ctrl_opcode = opcode;
-        resp.header.ctrl_error_code = FSL_CTRL_ERR_UNKNOWN_OPCODE;
-        resp.header.ctrl_length = 0;
-        resp.header.ctrl_seq_id = seq_id;
-        response.resize(sizeof(FslCtrlGeneralResponse));
-        memcpy(response.data(), &resp, sizeof(FslCtrlGeneralResponse));
+        {
+            FslCtrlGeneralResponse resp = {};
+            resp.header.ctrl_opcode = opcode;
+            resp.header.ctrl_error_code = FSL_CTRL_ERR_UNKNOWN_OPCODE;
+            resp.header.ctrl_length = 0;
+            resp.header.ctrl_seq_id = seq_id;
+            response.resize(sizeof(FslCtrlGeneralResponse));
+            memcpy(response.data(), &resp, sizeof(FslCtrlGeneralResponse));
+        }
         break;
-    }
     }
 
     // Send response if response socket exists
