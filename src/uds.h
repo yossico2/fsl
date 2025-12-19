@@ -20,18 +20,32 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
+// UdsSocket: Unix Domain Socket wrapper for FSL
 class UdsSocket
 {
 public:
+    // Constructor: create UDS socket for server (my_path) or client (target_path)
     UdsSocket(const std::string &my_path, const std::string &target_path);
+
     // Set SO_RCVBUF for this socket (call before bindSocket)
     bool setReceiveBufferSize(int size);
+
+    // Destructor: closes socket and unlinks my_path
     ~UdsSocket();
 
+    // Bind the socket to my_path (server)
     bool bindSocket();
+
+    // Send a datagram to target_path (client)
     ssize_t send(const void *buffer, size_t length);
+
+    // Receive a datagram from the socket
     ssize_t receive(void *buffer, size_t length);
+
+    // Get the socket file descriptor
     int getFd() const;
+
+    // Get the bound path (server)
     const std::string &getMyPath() const;
 
 private:

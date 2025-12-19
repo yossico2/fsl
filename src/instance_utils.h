@@ -3,11 +3,13 @@
 #include <string>
 #include <cstring>
 
+// get_instance_from_args_env: Get instance number from command line or environment
+// Priority: -i/--instance arg > positional integer arg > STATEFULSET_INDEX env var
 inline int get_instance_from_args_env(int argc, char *argv[])
 {
     int instance = -1;
 
-    // check command line args
+    // Check command line args for instance
     for (int i = 1; i < argc; ++i)
     {
         if ((strcmp(argv[i], "-i") == 0 || strcmp(argv[i], "--instance") == 0) && i + 1 < argc)
@@ -23,7 +25,7 @@ inline int get_instance_from_args_env(int argc, char *argv[])
         }
     }
 
-    // if not set, check env
+    // If not set, check STATEFULSET_INDEX env var
     if (instance < 0)
     {
         const char *env = std::getenv("STATEFULSET_INDEX");

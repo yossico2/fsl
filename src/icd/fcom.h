@@ -3,14 +3,16 @@
 #include <cstdint>
 #include <cstddef>
 
+// DL_MTU: Downlink max transfer unit
 constexpr size_t DL_MTU = 65536;
+// UL_MTU: Uplink max transfer unit
 constexpr size_t UL_MTU = 65536;
 
 ////////////////////////////////////////////////////////////////////////
 // FCOM-FSW
 ////////////////////////////////////////////////////////////////////////
 
-/// FCOM-FSW opcodes
+/// FCOM-FSW opcodes (flight software)
 typedef enum FCOM_FSW_OPCODE_EN : uint8_t
 {
     FCOM_FSW_OP_NOP = 0,
@@ -18,7 +20,7 @@ typedef enum FCOM_FSW_OPCODE_EN : uint8_t
     FCOM_FSW_OP_SET_STATE_OPER = 5,
 } FCOM_FSW_OPCODE_EN;
 
-/// FCOM-FSW error codes
+/// FCOM-FSW error codes (flight software)
 typedef enum FCOM_FSW_ERROR_EN : uint8_t
 {
     FCOM_FSW_E_UNDEFINED = 0,
@@ -39,13 +41,13 @@ typedef struct fcom_fsw_CS_Header
 // FCOM-PLMG
 ////////////////////////////////////////////////////////////////////////
 
-/// FCOM-PLMG opcodes
+/// FCOM-PLMG opcodes (payload management)
 typedef enum FCOM_PLMG_OPCODE_EN : uint8_t
 {
     FCOM_PLMG_OP_NOP = 0,
 } FCOM_PLMG_OPCODE_EN;
 
-/// FCOM-PLMG error codes
+/// FCOM-PLMG error codes (payload management)
 typedef enum FCOM_PLMG_ERROR_EN : uint8_t
 {
     FCOM_PLMG_E_UNDEFINED = 0,

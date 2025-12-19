@@ -16,15 +16,26 @@
 #include <string>
 #include <netinet/in.h>
 
+// UdpServerSocket: UDP socket wrapper for FSL
 class UdpServerSocket
 {
 public:
+    // Constructor: create UDP socket for given local port and remote IP/port
     UdpServerSocket(int local_port, const std::string &remote_ip, int remote_port);
+
+    // Destructor: closes socket
     ~UdpServerSocket();
 
+    // Bind the socket to local_port
     bool bindSocket();
+
+    // Send a datagram to remote_ip:remote_port
     ssize_t send(const void *buffer, size_t length);
+
+    // Receive a datagram from the socket
     ssize_t receive(void *buffer, size_t length, sockaddr_in *sender_addr = nullptr);
+
+    // Get the socket file descriptor
     int getFd() const;
 
 private:

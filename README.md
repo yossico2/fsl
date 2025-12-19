@@ -1,6 +1,53 @@
 # fsl C++ Application
 
-This project is a simple C++ application using CMake, designed to compile for either Ubuntu/Linux or PetaLinux.
+## Quick Start
+
+```bash
+sudo apt-get install libtinyxml2-dev
+./make.sh
+./build/linux/debug/fsl
+```
+
+## Example config.xml
+
+See `src/config.xml` for a full example. Key sections:
+
+```xml
+<config>
+    <logging>
+        <level>INFO</level>
+    </logging>
+    <sensor_id>0</sensor_id>
+    <udp>
+        <local_port>9910</local_port>
+        <remote_ip>127.0.0.1</remote_ip>
+        <remote_port>9010</remote_port>
+    </udp>
+    <data_link_uds>
+        <server name="DL_EL_H">
+            <path>/tmp/DL_EL_H</path>
+            <receive_buffer_size>65536</receive_buffer_size>
+        </server>
+        <!-- ... more servers/clients ... -->
+    </data_link_uds>
+    <ul_uds_mapping>
+        <mapping opcode="1" uds="FSW_UL" />
+    </ul_uds_mapping>
+    <ctrl_status_uds>
+        <FSW>
+            <request>
+                <path>/tmp/fsw_to_fcom</path>
+                <receive_buffer_size>1024</receive_buffer_size>
+            </request>
+            <response>
+                <path>/tmp/fcom_to_fsw</path>
+                <receive_buffer_size>1024</receive_buffer_size>
+            </response>
+        </FSW>
+        <!-- ... more app sections ... -->
+    </ctrl_status_uds>
+</config>
+```
 
 
 ## Build requirements
@@ -194,7 +241,7 @@ Build as described above, then run:
 
 ### C++ Unit Tests
 
-Unit tests are written using Catch2. To run all C++ tests:
+Unit tests use Catch2. To run all C++ tests:
 
 ```bash
 ./build/linux/debug/tests
@@ -230,6 +277,12 @@ Send data to a UDS server socket:
 echo -n "payload" | socat - UNIX-SENDTO:/tmp/FSW_HIGH_DL
 ```
 FSL will send a UDP packet to the remote IP/port.
+
+## Troubleshooting
+
+- If you see "Failed to load XML file", check that `config.xml` exists and is valid.
+- For socket errors, ensure no other process is using the same UDS/UDP ports.
+- For multi-instance, verify unique UDS paths and UDP ports per instance.
 
 ## Environment Variable Override
 

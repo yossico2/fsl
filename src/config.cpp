@@ -7,6 +7,9 @@
 
 using namespace tinyxml2;
 
+// override_config_from_env: Override config fields from environment variables if set
+// Priority: environment > config.xml
+// Supported env vars: FSL_SENSOR_ID, FSL_LOCAL_PORT, FSL_REMOTE_IP, FSL_REMOTE_PORT, LOGGING_LEVEL
 void override_config_from_env(AppConfig &config)
 {
     if (const char *env = std::getenv("FSL_SENSOR_ID"))
@@ -39,6 +42,9 @@ void override_config_from_env(AppConfig &config)
     }
 }
 
+// rewrite_uds_paths: Rewrite UDS paths to be unique per instance
+// Used for multi-instance deployments (e.g., k8s, multiple sensors)
+// Prepends /tmp/sensor-{instance}/ to UDS paths
 void rewrite_uds_paths(AppConfig &config, int instance)
 {
     auto prefix = std::string("/tmp/sensor-") + std::to_string(instance) + "/";
@@ -70,6 +76,7 @@ void rewrite_uds_paths(AppConfig &config, int instance)
         {
             ctrl_cfg.request_path = prefix + ctrl_cfg.request_path.substr(5);
         }
+
         if (!ctrl_cfg.response_path.empty() && ctrl_cfg.response_path.rfind("/tmp/", 0) == 0)
         {
             ctrl_cfg.response_path = prefix + ctrl_cfg.response_path.substr(5);
@@ -77,8 +84,12 @@ void rewrite_uds_paths(AppConfig &config, int instance)
     }
 }
 
+// load_config: Parse config.xml and return AppConfig
+// Throws std::runtime_error on error
+// Applies environment overrides and instance-specific UDS/UDP settings
 AppConfig load_config(const char *filename, int instance)
 {
+    // Load XML config file
     XMLDocument doc;
     XMLError result = doc.LoadFile(filename);
     if (result != XML_SUCCESS)
@@ -87,6 +98,7 @@ AppConfig load_config(const char *filename, int instance)
         throw std::runtime_error("Failed to load XML file. Check if file exists and is valid.");
     }
 
+    // Get <config> root element
     XMLElement *root = doc.FirstChildElement("config");
     if (root == nullptr)
         throw std::runtime_error("Invalid XML: Missing <config> root element");
@@ -94,6 +106,7 @@ AppConfig load_config(const char *filename, int instance)
     AppConfig config;
 
     // --- Parse Logging Level ---
+    // <logging><level>INFO|DEBUG|ERROR</level></logging>
     XMLElement *logging_node = root->FirstChildElement("logging");
     if (logging_node)
     {
@@ -103,6 +116,7 @@ AppConfig load_config(const char *filename, int instance)
     }
 
     // --- Parse UDP Settings ---
+    // <udp><local_port>...</local_port><remote_ip>...</remote_ip><remote_port>...</remote_port></udp>
     XMLElement *udp_node = root->FirstChildElement("udp");
     if (udp_node)
     {
@@ -120,6 +134,7 @@ AppConfig load_config(const char *filename, int instance)
     {
         throw std::runtime_error("Missing <udp> section");
     }
+
     // Parse sensor_id from top level (optional, default 1)
     int xml_sensor_id = 1;
     XMLElement *sensor_id_el = root->FirstChildElement("sensor_id");
@@ -142,6 +157,7 @@ AppConfig load_config(const char *filename, int instance)
     }
 
     // --- Parse Data Link UDS Settings ---
+    // <data_link_uds><server .../><client .../></data_link_uds>
     XMLElement *uds_node = root->FirstChildElement("data_link_uds");
     if (uds_node)
     {
@@ -178,6 +194,7 @@ AppConfig load_config(const char *filename, int instance)
     }
 
     // --- Parse UL UDS Mapping ---
+    // <ul_uds_mapping><mapping opcode="..." uds="..."/></ul_uds_mapping>
     XMLElement *mapping_root = root->FirstChildElement("ul_uds_mapping");
     if (mapping_root)
     {
@@ -193,7 +210,8 @@ AppConfig load_config(const char *filename, int instance)
         }
     }
 
-    // --- Parse ctrl/status UDS for each app under <ctrl_status> ---
+    // --- Parse ctrl/status UDS for each app under <ctrl_status_uds> ---
+    // <ctrl_status_uds><FSW>...</FSW><PLMG>...</PLMG>...</ctrl_status_uds>
     XMLElement *ctrl_status_node = root->FirstChildElement("ctrl_status_uds");
     if (ctrl_status_node)
     {
@@ -211,6 +229,7 @@ AppConfig load_config(const char *filename, int instance)
                 if (buf)
                     buf->QueryIntText(&ctrl_cfg.request_buffer_size);
             }
+
             XMLElement *resp = app_node->FirstChildElement("response");
             if (resp)
             {
@@ -221,17 +240,12 @@ AppConfig load_config(const char *filename, int instance)
                 if (buf)
                     buf->QueryIntText(&ctrl_cfg.response_buffer_size);
             }
+
             config.ctrl_uds_name[section] = ctrl_cfg;
         }
     }
 
-    // If instance >= 0, rewrite UDS paths
-    if (instance >= 0)
-    {
-        rewrite_uds_paths(config, instance);
-    }
-
-    // --- Override with other environment variables if set (except sensor_id) ---
+    // --- Override with other environment variables if set (except sensor_id which is handled earlier in the function) ---
     // Remove sensor_id override from env here, as it's already handled above
     if (const char *env = std::getenv("FSL_LOCAL_PORT"))
         config.udp_local_port = std::atoi(env);
@@ -240,18 +254,14 @@ AppConfig load_config(const char *filename, int instance)
     if (const char *env = std::getenv("FSL_REMOTE_IP"))
         config.udp_remote_ip = env;
 
-    // If instance >= 0, assign unique UDP ports per instance
     if (instance >= 0)
     {
-        // Only override if default ports are used (9910, 9010)
-        if (config.udp_local_port == 9910)
-        {
-            config.udp_local_port = 9910 + instance;
-        }
-        if (config.udp_remote_port == 9010)
-        {
-            config.udp_remote_port = 9010 + instance;
-        }
+        // If instance >= 0, rewrite UDS paths for multi-instance support
+        rewrite_uds_paths(config, instance);
+
+        // If instance >= 0, assign unique UDP ports per instance (for multi-instance)
+        config.udp_local_port = 9910 + instance;
+        config.udp_remote_port = 9010 + instance;
     }
 
     return config;

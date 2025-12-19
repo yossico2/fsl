@@ -3,11 +3,12 @@
 #include <cstdint>
 #include <cstddef>
 
+// UL_Destination: Uplink destination enum
 enum UL_Destination : uint8_t
 {
-    FSW = 1,
-    PLMG = 2,
-    EL = 3,
+    FSW = 1,  // Flight Software
+    PLMG = 2, // Payload Management
+    EL = 3,   // EL (other app)
 };
 
 /// GSL-FSL protocol message header (UDP framing)
@@ -38,7 +39,6 @@ enum FslCtrlOpcode : uint8_t
     FSL_CTRL_OP_SET_STANDBY = 3, ///< Set FSL to STANDBY state
 };
 
-/// Error codes for ctrl/status protocol responses
 /// Error codes for ctrl/status protocol responses
 enum FslCtrlErrorCode : uint8_t
 {

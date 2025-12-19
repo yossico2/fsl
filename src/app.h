@@ -37,18 +37,41 @@ public:
     std::queue<CtrlRequest> ctrl_queue_;
     std::mutex ctrl_queue_mutex_;
     std::condition_variable ctrl_queue_cv_;
+
+    // Constructor: Loads config and sets up sockets
     App(const AppConfig &config);
+
+    // Main event loop for polling and routing
     void run();
+
+    // Closes sockets and unlinks UDS files
     void cleanup();
+
+    // Handles SIGINT/SIGTERM for graceful shutdown
     static void signalHandler(int signum);
+
+    // Process a control request from the ctrl queue
     void processCtrlRequest(const CtrlRequest &req);
+
+    // Process FSW control request
     void processFSWCtrlRequest(std::vector<uint8_t> &data);
+
+    // Process PLMG control request
     void processPLMGCtrlRequest(std::vector<uint8_t> &data);
+
+    // Process EL control request
     void processELCtrlRequest(std::vector<uint8_t> &data);
 
+    // Process a downlink message for a given server
     int processDownlinkMessage(const std::string &server_name, std::vector<uint8_t> &data, uint32_t &msg_id_counter);
+
+    // Process FSW downlink message
     int processFSWDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter);
+
+    // Process PLMG downlink message
     int processPLMGDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter);
+
+    // Process EL downlink message
     int processELDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter);
 
 private:
