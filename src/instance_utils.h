@@ -15,10 +15,10 @@ inline int get_instance_from_args_env(int argc, char *argv[])
             instance = std::atoi(argv[i + 1]);
             break;
         }
-        // Accept a single positional integer argument
-        if (instance < 0 && argc == 2 && std::atoi(argv[1]) > 0)
+        // Accept the first positional integer argument (not an option)
+        if (instance < 0 && argv[i][0] != '-' && std::atoi(argv[i]) >= 0)
         {
-            instance = std::atoi(argv[1]);
+            instance = std::atoi(argv[i]);
             break;
         }
     }

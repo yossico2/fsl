@@ -2,5 +2,6 @@
 
 PIDS=$(pgrep -f "./fsl")
 if [[ -n "${PIDS}" ]]; then
-	kill "${PIDS}"
+	# shellcheck disable=SC2086
+	kill ${PIDS}
 fi

@@ -121,13 +121,25 @@ AppConfig load_config(const char *filename, int instance)
         throw std::runtime_error("Missing <udp> section");
     }
     // Parse sensor_id from top level (optional, default 1)
+    int xml_sensor_id = 1;
     XMLElement *sensor_id_el = root->FirstChildElement("sensor_id");
     if (sensor_id_el)
-        sensor_id_el->QueryIntText(&config.sensor_id);
+        sensor_id_el->QueryIntText(&xml_sensor_id);
 
-    // If instance is provided, always use it for sensor_id (unless FSL_SENSOR_ID is set)
-    if (instance >= 0)
+    // Set sensor_id in order: FSL_SENSOR_ID > instance > config.xml
+    const char *env_sensor_id = std::getenv("FSL_SENSOR_ID");
+    if (env_sensor_id)
+    {
+        config.sensor_id = std::atoi(env_sensor_id);
+    }
+    else if (instance >= 0)
+    {
         config.sensor_id = instance;
+    }
+    else
+    {
+        config.sensor_id = xml_sensor_id;
+    }
 
     // --- Parse Data Link UDS Settings ---
     XMLElement *uds_node = root->FirstChildElement("data_link_uds");
@@ -219,14 +231,14 @@ AppConfig load_config(const char *filename, int instance)
         rewrite_uds_paths(config, instance);
     }
 
-    // --- Override with environment variables if set ---
-    override_config_from_env(config);
-
-    // If sensor_id is not set (<=0) and instance >= 0, use instance as sensor_id
-    if (config.sensor_id <= 0 && instance >= 0)
-    {
-        config.sensor_id = instance;
-    }
+    // --- Override with other environment variables if set (except sensor_id) ---
+    // Remove sensor_id override from env here, as it's already handled above
+    if (const char *env = std::getenv("FSL_LOCAL_PORT"))
+        config.udp_local_port = std::atoi(env);
+    if (const char *env = std::getenv("FSL_REMOTE_PORT"))
+        config.udp_remote_port = std::atoi(env);
+    if (const char *env = std::getenv("FSL_REMOTE_IP"))
+        config.udp_remote_ip = env;
 
     // If instance >= 0, assign unique UDP ports per instance
     if (instance >= 0)
