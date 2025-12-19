@@ -362,7 +362,7 @@ void App::run()
             {
                 // determine UL_Destination from gsl-fsl-header opcode
                 // pill off gsl-fsl header and send only payload via UDS
-                const GslFslHeader *hdr = reinterpret_cast<const GslFslHeader *>(buffer);
+                const GslFslHeader *hdr = static_cast<const GslFslHeader *>(static_cast<const void *>(buffer));
                 UL_Destination dest = static_cast<UL_Destination>(hdr->opcode); // opcode is actually destination for uplink
                 std::map<uint16_t, std::string>::const_iterator map_it = config_.ul_uds_mapping.find(static_cast<uint16_t>(dest));
                 if (map_it != config_.ul_uds_mapping.end())
@@ -484,17 +484,18 @@ void App::run()
 
 void App::processCtrlRequest(const CtrlRequest &req)
 {
+    // The control request handlers require non-const data for processing
     if (req.ctrl_uds_name == "FSW")
     {
-        processFSWCtrlRequest(const_cast<std::vector<uint8_t> &>(req.data));
+        processFSWCtrlRequest(const_cast<std::vector<uint8_t> &>(req.data)); // Intentional: handler may modify data
     }
     else if (req.ctrl_uds_name == "PLMG")
     {
-        processPLMGCtrlRequest(const_cast<std::vector<uint8_t> &>(req.data));
+        processPLMGCtrlRequest(const_cast<std::vector<uint8_t> &>(req.data)); // Intentional: handler may modify data
     }
     else if (req.ctrl_uds_name == "EL")
     {
-        processELCtrlRequest(const_cast<std::vector<uint8_t> &>(req.data));
+        processELCtrlRequest(const_cast<std::vector<uint8_t> &>(req.data)); // Intentional: handler may modify data
     }
     else
     {
@@ -509,7 +510,7 @@ void App::processFSWCtrlRequest(std::vector<uint8_t> &data)
     {
         Logger::debug("[CTRL] Processing FSW control request, bytes=" + std::to_string(data.size()));
     }
-    const fcom_fsw_CS_Header *hdr = reinterpret_cast<const fcom_fsw_CS_Header *>(data.data());
+    const fcom_fsw_CS_Header *hdr = static_cast<const fcom_fsw_CS_Header *>(static_cast<const void *>(data.data()));
     if (Logger::isDebugEnabled())
     {
         Logger::debug("[CTRL] FSW Header: opcode=" + std::to_string(hdr->opcode) +
@@ -526,7 +527,7 @@ void App::processPLMGCtrlRequest(std::vector<uint8_t> &data)
     {
         Logger::debug("[CTRL] Processing PLMG control request, bytes=" + std::to_string(data.size()));
     }
-    const plmg_fcom_header *hdr = reinterpret_cast<const plmg_fcom_header *>(data.data());
+    const plmg_fcom_header *hdr = static_cast<const plmg_fcom_header *>(static_cast<const void *>(data.data()));
     if (Logger::isDebugEnabled())
     {
         Logger::debug("[CTRL] PLMG Header: opcode=" + std::to_string(hdr->opcode) +
@@ -543,7 +544,7 @@ void App::processELCtrlRequest(std::vector<uint8_t> &data)
     {
         Logger::debug("[CTRL] Processing EL control request, bytes=" + std::to_string(data.size()));
     }
-    const plmg_fcom_header *hdr = reinterpret_cast<const plmg_fcom_header *>(data.data());
+    const plmg_fcom_header *hdr = static_cast<const plmg_fcom_header *>(static_cast<const void *>(data.data()));
     if (Logger::isDebugEnabled())
     {
         Logger::debug("[CTRL] EL Header: opcode=" + std::to_string(hdr->opcode) +
@@ -596,7 +597,7 @@ int App::processFSWDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter
 // Returns number of bytes sent, or <0 on error
 int App::processPLMGDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter)
 {
-    const fcom_datalink_header *hdr_in = reinterpret_cast<const fcom_datalink_header *>(data.data());
+    const fcom_datalink_header *hdr_in = static_cast<const fcom_datalink_header *>(static_cast<const void *>(data.data()));
 
     if (Logger::isDebugEnabled())
     {
@@ -630,7 +631,7 @@ int App::processPLMGDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counte
 // Returns number of bytes sent, or <0 on error
 int App::processELDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter)
 {
-    const fcom_datalink_header *hdr_in = reinterpret_cast<const fcom_datalink_header *>(data.data());
+    const fcom_datalink_header *hdr_in = static_cast<const fcom_datalink_header *>(static_cast<const void *>(data.data()));
 
     if (Logger::isDebugEnabled())
     {
