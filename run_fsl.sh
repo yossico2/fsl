@@ -48,7 +48,7 @@ function main() {
 	elif [[ -n "${STATEFULSET_INDEX}" ]]; then
 		instance="${STATEFULSET_INDEX}"
 	else
-		instance=0
+		instance=""
 	fi
 
 	# Check NO_DOCKER env var
@@ -92,7 +92,11 @@ function main() {
 		fi
 
 		   if [[ -n "$detach" ]]; then
-			   nohup ./fsl "${instance}" >"${logdir}/fsl-${instance}.log" 2>&1 &
+			   if [[ -n "$instance" ]]; then
+				   nohup ./fsl "$instance" >"${logdir}/fsl-${instance}.log" 2>&1 &
+			   else
+				   nohup ./fsl >"${logdir}/fsl-noinstance.log" 2>&1 &
+			   fi
 			   fsl_pid=$!
 			   sleep 0.5
 			   if ! kill -0 "${fsl_pid}" 2>/dev/null; then
@@ -101,11 +105,21 @@ function main() {
 				   exit 1
 			   fi
 			   cd - &>/dev/null || exit 1
-			   echo "Started fsl instance ${instance} in background (PID ${fsl_pid}). Output: ${logdir}/fsl-${instance}.log" >&2
+			   if [[ -n "$instance" ]]; then
+				   echo "Started fsl instance ${instance} in background (PID ${fsl_pid}). Output: ${logdir}/fsl-${instance}.log" >&2
+			   else
+				   echo "Started fsl with no instance in background (PID ${fsl_pid}). Output: ${logdir}/fsl-noinstance.log" >&2
+			   fi
 		   else
-			   ./fsl "${instance}" | tee "${logdir}/fsl-${instance}.log"
-			   cd - &>/dev/null || exit 1
-			   echo "Started fsl instance ${instance} in foreground. Output: ${logdir}/fsl-${instance}.log" >&2
+			   if [[ -n "$instance" ]]; then
+				   ./fsl "$instance" | tee "${logdir}/fsl-${instance}.log"
+				   cd - &>/dev/null || exit 1
+				   echo "Started fsl instance ${instance} in foreground. Output: ${logdir}/fsl-${instance}.log" >&2
+			   else
+				   ./fsl | tee "${logdir}/fsl-noinstance.log"
+				   cd - &>/dev/null || exit 1
+				   echo "Started fsl with no instance in foreground. Output: ${logdir}/fsl-noinstance.log" >&2
+			   fi
 		   fi
 	else
 		docker run --rm ${detach} -it --network=host \

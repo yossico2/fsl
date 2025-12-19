@@ -4,7 +4,7 @@
         <level>INFO</level>
     </logging>
     <!-- sensor id -->
-    <sensor_id>1</sensor_id>
+    <sensor_id>0</sensor_id>
     <!-- fsl and gsl addr -->
     <udp>
         <!-- fsl port -->
