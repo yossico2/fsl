@@ -589,6 +589,12 @@ int App::processFSWDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter
     hdr.length = data.size();
     hdr.seq_id = msg_id_counter++;
 
+    if (GSL_FSL_HEADER_SIZE + data.size() > sizeof(buffer))
+    {
+        Logger::error("FSW downlink: buffer overflow risk, data too large");
+        return -1;
+    }
+
     memcpy(buffer, &hdr, GSL_FSL_HEADER_SIZE);
     memcpy(buffer + GSL_FSL_HEADER_SIZE, data.data(), data.size());
     return udp_.send(buffer, data.size() + GSL_FSL_HEADER_SIZE);
@@ -623,6 +629,12 @@ int App::processPLMGDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counte
     hdr.length = payload_len;
     hdr.seq_id = msg_id_counter++;
 
+    if (GSL_FSL_HEADER_SIZE + payload_len > sizeof(buffer))
+    {
+        Logger::error("PLMG downlink: buffer overflow risk, payload too large");
+        return -1;
+    }
+
     memcpy(buffer, &hdr, GSL_FSL_HEADER_SIZE);
     memcpy(buffer + GSL_FSL_HEADER_SIZE, payload, payload_len);
     return udp_.send(buffer, payload_len + GSL_FSL_HEADER_SIZE);
@@ -656,6 +668,12 @@ int App::processELDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter)
     hdr.sensor_id = config_.sensor_id;
     hdr.length = payload_len;
     hdr.seq_id = msg_id_counter++;
+
+    if (GSL_FSL_HEADER_SIZE + payload_len > sizeof(buffer))
+    {
+        Logger::error("EL downlink: buffer overflow risk, payload too large");
+        return -1;
+    }
 
     memcpy(buffer, &hdr, GSL_FSL_HEADER_SIZE);
     memcpy(buffer + GSL_FSL_HEADER_SIZE, payload, payload_len);
