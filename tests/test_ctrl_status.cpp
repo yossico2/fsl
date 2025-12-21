@@ -5,6 +5,7 @@
 #include <chrono>
 #include <queue>
 #include <mutex>
+#include <unistd.h>
 
 // Helper to get config path safely
 static std::string get_test_config_path()

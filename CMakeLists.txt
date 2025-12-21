@@ -3,7 +3,6 @@ add_executable(tests
     tests/main.cpp
     tests/test_config.cpp
     tests/test_ctrl_status.cpp
-    # tests/test_plmg_ctrl.cpp (deleted)
     src/app.cpp
     src/uds.cpp
     src/udp.cpp
@@ -12,6 +11,7 @@ add_executable(tests
     src/sdk/tinyxml2/tinyxml2.cpp
 )
 target_include_directories(tests PRIVATE tests src src/sdk/tinyxml2)
+target_link_libraries(tests pthread)
 
 cmake_minimum_required(VERSION 3.10)
 project(fsl)
