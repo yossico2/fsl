@@ -171,8 +171,9 @@ AppConfig load_config(const char *filename, int instance)
                 if (name)
                     server_cfg.name = name;
                 XMLElement *path_el = el->FirstChildElement("path");
-                if (path_el && path_el->GetText())
-                    server_cfg.path = path_el->GetText();
+                if (!path_el || !path_el->GetText() || std::string(path_el->GetText()).empty())
+                    throw std::runtime_error(std::string("UDS server '") + (name ? std::string(name) : "<unnamed>") + "' missing <path> element or value");
+                server_cfg.path = path_el->GetText();
                 XMLElement *buf_el = el->FirstChildElement("receive_buffer_size");
                 if (buf_el)
                     buf_el->QueryIntText(&server_cfg.receive_buffer_size);
@@ -183,8 +184,11 @@ AppConfig load_config(const char *filename, int instance)
             {
                 const char *name = el->Attribute("name");
                 const char *path = el->GetText();
-                if (name && path)
-                    config.uds_clients[name] = path;
+                if (!name)
+                    throw std::runtime_error("UDS client missing 'name' attribute");
+                if (!path || std::string(path).empty())
+                    throw std::runtime_error(std::string("UDS client '") + std::string(name) + "' missing path value");
+                config.uds_clients[name] = path;
             }
         }
     }
