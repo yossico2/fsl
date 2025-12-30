@@ -3,7 +3,7 @@
 print_usage() {
 	echo "Usage: $0 [instance] [-d] [-nd] [-h|--help]"
 	echo "  instance    Instance number to run (default: 1)"
-	echo "  -d          Run container in detached mode (can be before or after instance)"
+	echo "  -d          Run container in the background (detached mode)"
 	echo "  -nd         Run FSL directly (no Docker)"
 	echo "  -h, --help  Show this help message"
 	echo ""
@@ -61,19 +61,19 @@ function main() {
 		logdir="${HOME}/dev/logs"
 		mkdir -p "${logdir}"
 
-		local fsldir=
+		local project_dir=
 		local env_path
 		env_path="$(dirname "$0")/env.sh"
 		if [[ -f "${env_path}" ]]; then
 			# source env.sh to get BUILD_TARGET_DIR
 			# shellcheck disable=SC1090
 			source "${env_path}"
-			fsldir="${BUILD_TARGET_DIR}"
+			project_dir="${BUILD_TARGET_DIR}"
 		else
-			fsldir="${HOME}/dev/elar/elar_fsl/build/linux/debug"
+			project_dir="${HOME}/dev/elar/elar_fsl/build/linux/debug"
 		fi
 
-		cd "${fsldir}" || exit 1
+		cd "${project_dir}" || exit 1
 
 		# Check for previous fsl for this instance and fail if found
 		if [[ -n "${instance}" ]]; then
@@ -93,18 +93,18 @@ function main() {
 			else
 				nohup ./fsl >"${logdir}/fsl-noinstance.log" 2>&1 &
 			fi
-			fsl_pid=$!
+			process_pid=$!
 			sleep 0.5
-			if ! ps -p "${fsl_pid}" >/dev/null 2>&1; then
+			if ! ps -p "${process_pid}" >/dev/null 2>&1; then
 				echo -e "\033[0;31mError: Failed to start fsl in background\033[0m" >&2
 				cd - &>/dev/null || exit 1
 				exit 1
 			fi
 			cd - &>/dev/null || exit 1
 			if [[ -n "${instance}" ]]; then
-				echo "Started fsl instance ${instance} in background (PID ${fsl_pid}). Output: ${logdir}/fsl-${instance}.log" >&2
+				echo "Started fsl instance ${instance} in background (PID ${process_pid}). Output: ${logdir}/fsl-${instance}.log" >&2
 			else
-				echo "Started fsl with no instance in background (PID ${fsl_pid}). Output: ${logdir}/fsl-noinstance.log" >&2
+				echo "Started fsl with no instance in background (PID ${process_pid}). Output: ${logdir}/fsl-noinstance.log" >&2
 			fi
 		else
 			if [[ -n "${instance}" ]]; then

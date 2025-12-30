@@ -3,7 +3,6 @@
 ## Quick Start
 
 ```bash
-sudo apt-get install libtinyxml2-dev
 ./make.sh
 ./build/linux/debug/fsl
 ```
@@ -49,15 +48,7 @@ See `src/config.xml` for a full example. Key sections:
 </config>
 ```
 
-
-## Build requirements
-Install tinyxml2:
-```bash
-sudo apt-get install libtinyxml2-dev
-```
-
 ## Building for Ubuntu/Linux
-
 
 ### Building with make.sh
 
