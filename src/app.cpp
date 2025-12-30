@@ -271,6 +271,7 @@ void App::run()
             ctrl_status_uds += " response: " + c.response_path;
         ctrl_status_uds += "\n";
     }
+
     Logger::info(ctrl_status_uds);
 
     // === Start ctrl worker thread
