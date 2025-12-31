@@ -240,6 +240,7 @@ void App::cleanup()
 
 void App::signalHandler(int signum)
 {
+    Logger::info("\nClosing application...");
     shutdown_flag_ = 1;
 }
 
