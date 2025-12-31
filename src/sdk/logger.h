@@ -10,7 +10,7 @@ enum class LogLevel
     DEBUG
 };
 
-// Logger: Thread-safe logging utility for FSL
+// Logger: Thread-safe logging utility
 // Usage: Logger::setLevel(), Logger::error(), Logger::info(), Logger::debug()
 class Logger
 {

@@ -201,17 +201,10 @@ Replace `<path-to-petalinux-gcc>` and `<path-to-petalinux-g++>` with the actual 
 - `src/main.cpp`: Application entry point
 - `src/app.cpp`, `src/app.h`: Main application logic
 - `src/config.cpp`, `src/config.h`: XML configuration parser
-- `src/logger.cpp`, `src/logger.h`: Logging utilities
-- `src/udp.cpp`, `src/udp.h`: UDP socket handling
-- `src/uds.cpp`, `src/uds.h`: Unix Domain Socket handling
-- `src/ctrl_request.h`, `src/icd.h`, `src/instance_utils.h`: Protocol and utility headers
-- `src/config.xml`: Example configuration file
-                <path>/tmp/plmg_to_fcom</path>
-                <receive_buffer_size>1024</receive_buffer_size>
-            </request>
-        </dynamic>
-    </ctrl_status_uds>
-</config>
+- `src/sdk/logger.cpp`, `src/logger.h`: Logging utilities
+- `src/sdk/udp.cpp`, `src/sdk/udp.h`: UDP socket handling
+- `src/sdk/uds.cpp`, `src/sdk/uds.h`: Unix Domain Socket handling
+- `src/config.xml`: configuration file
 ```
 
 - `<udp>`: UDP socket configuration for FSL.

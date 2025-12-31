@@ -31,10 +31,9 @@
 #include <condition_variable>
 #include <vector>
 
-#include "logger.h"
 #include "icd/fsl.h"
 #include "icd/fcom.h"
-#include "ctrl_request.h"
+#include "sdk/logger.h"
 
 // Helper for UL_Destination enum to string
 static const std::unordered_map<uint16_t, const char *> UL_DestinationNames = {

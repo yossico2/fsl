@@ -8,15 +8,14 @@ friend struct AppTestFriend;
 #include <cstdint>
 #include <map>
 #include <memory>
-#include "uds.h"    // For AppConfig and CtrlUdsConfig
-#include "config.h" // For UdpServerSocket
-#include "udp.h"    // For std::queue, std::mutex, std::condition_variable
+#include "config.h"
+#include "sdk/uds.h"
+#include "sdk/udp.h"
 #include <queue>
 #include <mutex>
 #include <condition_variable>
-#include <csignal>        // For sig_atomic_t
-#include "ctrl_request.h" // For CtrlRequest type
-#include "icd/fsl.h"      // For FslStates, FslCtrl* types
+#include <csignal>   // For sig_atomic_t
+#include "icd/fsl.h" // For FslStates, FslCtrl* types
 
 //
 // The App class manages UDP and multiple UDS sockets (server/client) for routing
@@ -34,6 +33,13 @@ friend struct AppTestFriend;
 //   - run(): Main event loop for polling and routing
 //   - cleanup(): Closes sockets and unlinks UDS files
 //   - signalHandler(int): Handles SIGINT/SIGTERM for graceful shutdown
+
+// CtrlRequest: Control/status message for FSL ctrl queue
+struct CtrlRequest
+{
+    std::string ctrl_uds_name; // Name of ctrl/status UDS channel
+    std::vector<uint8_t> data; // Raw message data
+};
 
 class App
 {

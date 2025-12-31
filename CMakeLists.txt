@@ -4,10 +4,10 @@ add_executable(tests
     tests/test_config.cpp
     tests/test_ctrl_status.cpp
     src/app.cpp
-    src/uds.cpp
-    src/udp.cpp
     src/config.cpp
-    src/logger.cpp
+    src/sdk/uds.cpp
+    src/sdk/udp.cpp
+    src/sdk/logger.cpp
     src/sdk/tinyxml2/tinyxml2.cpp
 )
 target_include_directories(tests PRIVATE tests src src/sdk/tinyxml2)
@@ -37,7 +37,7 @@ endif()
 
 
 
-add_executable(fsl src/main.cpp src/config.cpp src/uds.cpp src/udp.cpp src/app.cpp src/logger.cpp src/sdk/tinyxml2/tinyxml2.cpp)
+add_executable(fsl src/main.cpp src/app.cpp src/config.cpp src/sdk/uds.cpp src/sdk/udp.cpp src/sdk/logger.cpp src/sdk/tinyxml2/tinyxml2.cpp)
 target_include_directories(fsl PRIVATE src src/sdk/tinyxml2)
 target_link_libraries(fsl pthread)
 
