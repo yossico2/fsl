@@ -94,6 +94,8 @@ protected:
     {
         std::unique_ptr<UdsSocket> request;
         std::unique_ptr<UdsSocket> response;
+        // Flag for graceful shutdown (set by signal handler)
+        static volatile std::sig_atomic_t shutdown_flag_;
     };
     std::map<std::string, CtrlUdsSockets> ctrl_uds_sockets_;
     static volatile sig_atomic_t shutdown_flag_;

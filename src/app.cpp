@@ -41,7 +41,7 @@ static const std::unordered_map<uint16_t, const char *> UL_DestinationNames = {
     {UL_Destination::PLMG, "PLMG"},
     {UL_Destination::EL, "EL"}};
 
-volatile sig_atomic_t App::shutdown_flag_ = 0;
+volatile std::sig_atomic_t App::shutdown_flag_ = 0;
 
 constexpr size_t CTRL_QUEUE_MAX_SIZE = 32; // Adjust as needed
 std::queue<CtrlRequest> ctrl_queue_;
@@ -127,6 +127,7 @@ App::App(const AppConfig &config)
         {
             throw std::runtime_error("Error binding UDS server: " + server_cfg.path);
         }
+
         uds_servers_.push_back(std::move(server));
     }
 
@@ -178,56 +179,20 @@ void App::cleanup()
     // Close UDP socket
     // (UdpServerSocket destructor will close fd_)
 
-    // Close and unlink UDS server sockets
-    for (auto &server : uds_servers_)
-    {
-        const std::string &path = server->getMyPath();
-        server.reset(); // Close socket
-        if (!path.empty())
-        {
-            if (unlink(path.c_str()) == 0)
-                Logger::info("Unlinked UDS file: " + path);
-            else
-                Logger::error("Failed to unlink UDS file: " + path + " (" + ::strerror(errno) + ")");
-        }
-    }
+    // Close UDS server sockets (destructor will unlink)
     uds_servers_.clear();
 
     // Close UDS client sockets
     for (auto &client : uds_clients_)
-    {
         client.second.reset();
-    }
     uds_clients_.clear();
 
-    // Close and unlink ctrl/status UDS sockets
+    // Close ctrl/status UDS sockets (destructor will unlink)
     for (auto &entry : ctrl_uds_sockets_)
     {
         auto &sockets = entry.second;
-        if (sockets.request)
-        {
-            const std::string &path = sockets.request->getMyPath();
-            sockets.request.reset();
-            if (!path.empty())
-            {
-                if (unlink(path.c_str()) == 0)
-                    Logger::info("Unlinked ctrl request UDS file: " + path);
-                else
-                    Logger::error("Failed to unlink ctrl request UDS file: " + path + " (" + ::strerror(errno) + ")");
-            }
-        }
-        if (sockets.response)
-        {
-            const std::string &path = sockets.response->getMyPath();
-            sockets.response.reset();
-            if (!path.empty())
-            {
-                if (unlink(path.c_str()) == 0)
-                    Logger::info("Unlinked ctrl response UDS file: " + path);
-                else
-                    Logger::error("Failed to unlink ctrl response UDS file: " + path + " (" + ::strerror(errno) + ")");
-            }
-        }
+        sockets.request.reset();
+        sockets.response.reset();
     }
 
     // Stop ctrl worker thread
