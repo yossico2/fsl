@@ -12,6 +12,8 @@
 // Logs send/receive errors using perror.
 
 #include <arpa/inet.h>
+#include <fcntl.h>
+#include <cerrno>
 #include <unistd.h>
 #include <cstring>
 #include <stdexcept>
@@ -54,6 +56,12 @@ UdpServerSocket::UdpServerSocket(int local_port, const std::string &remote_ip, i
     {
         throw std::runtime_error("Error creating UDP socket");
     }
+    // Set non-blocking mode
+    int flags = fcntl(fd_, F_GETFL, 0);
+    if (flags < 0 || fcntl(fd_, F_SETFL, flags | O_NONBLOCK) < 0)
+    {
+        perror("[ERROR] UDP fcntl non-blocking failed");
+    }
 
     int opt = 1;
     if (setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
@@ -80,7 +88,14 @@ ssize_t UdpServerSocket::send(const void *buffer, size_t length)
     ssize_t sent = sendto(fd_, buffer, length, 0, (struct sockaddr *)&remote_addr_, sizeof(remote_addr_));
     if (sent < 0)
     {
-        perror("[ERROR] UDP sendto failed");
+        if (errno == EAGAIN || errno == EWOULDBLOCK)
+        {
+            std::cerr << "[ERROR] UDP sendto failed: buffer full (EAGAIN/EWOULDBLOCK)\n";
+        }
+        else
+        {
+            perror("[ERROR] UDP sendto failed");
+        }
     }
     return sent;
 }

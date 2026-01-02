@@ -21,6 +21,8 @@
 #include <sys/stat.h>
 
 #include <sys/socket.h>
+#include <iostream>
+#include <fcntl.h>
 
 UdsSocket::UdsSocket(const std::string &my_path, const std::string &target_path)
     : fd_(-1), my_path_(my_path), target_path_(target_path)
@@ -37,6 +39,12 @@ UdsSocket::UdsSocket(const std::string &my_path, const std::string &target_path)
     if (fd_ < 0)
     {
         throw std::runtime_error("Error creating UDS socket");
+    }
+    // Set non-blocking mode
+    int flags = fcntl(fd_, F_GETFL, 0);
+    if (flags < 0 || fcntl(fd_, F_SETFL, flags | O_NONBLOCK) < 0)
+    {
+        perror("[ERROR] UDS fcntl non-blocking failed");
     }
 }
 
@@ -77,6 +85,7 @@ bool UdsSocket::bindSocket()
             }
         }
     }
+
     unlink(my_path_.c_str());
     if (bind(fd_, (struct sockaddr *)&server_addr_, sizeof(server_addr_)) < 0)
     {
@@ -90,7 +99,14 @@ ssize_t UdsSocket::send(const void *buffer, size_t length)
     ssize_t sent = sendto(fd_, buffer, length, 0, (struct sockaddr *)&target_addr_, sizeof(target_addr_));
     if (sent < 0)
     {
-        perror("[ERROR] UDS sendto failed");
+        if (errno == EAGAIN || errno == EWOULDBLOCK)
+        {
+            std::cerr << "[ERROR] UDS sendto failed: buffer full (EAGAIN/EWOULDBLOCK)\n";
+        }
+        else
+        {
+            perror("[ERROR] UDS sendto failed");
+        }
     }
     return sent;
 }

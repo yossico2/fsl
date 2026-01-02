@@ -12,7 +12,7 @@ import threading
 # GslFslHeader: opcode (uint16), sensor_id (uint16), length (uint32), seq_id (uint32)
 GSL_FSL_HEADER_SIZE = struct.calcsize("<HHII")
 
-UL_MTU = 65500
+UDP_MTU = 65500
 
 
 def send_udp_to_fcom(opcode, payload, udp_ip, udp_port, sensor_id=0):
@@ -53,7 +53,7 @@ def receive_uds(uds_path, timeout=2):
     s.bind(uds_path)
     s.settimeout(timeout)
     try:
-        data, _ = s.recvfrom(UL_MTU)
+        data, _ = s.recvfrom(UDP_MTU)
         return data
     except socket.timeout:
         return None
@@ -134,7 +134,7 @@ def test_uds_to_udp():
         print("Downlink: receiving message from UDP...")
 
         try:
-            data, addr = s.recvfrom(UL_MTU)
+            data, addr = s.recvfrom(UDP_MTU)
             print("Downlink: received message from UDP:", data)
             assert data is not None, f"No UDP data received for {uds_server_path}"
             # Parse GslFslHeader: opcode (uint16), sensor_id (uint16), length (uint32), seq_id (uint32), all little-endian
@@ -153,11 +153,76 @@ def test_uds_to_udp():
             s.close()
 
 
+def test_uds_to_udp_high_rate():
+    """Test: DL_EL_H UDS can handle high-rate download (>=1Gbps) via FSL to UDP."""
+    import math
+
+    gcom_udp_ip = "127.0.0.1"
+    gcom_udp_port = 9010
+    uds_server_path = "/tmp/DL_EL_H"
+    data_size = 100 * 1024 * 1024  # 100MB
+    chunk_size = 60 * 1024  # 60KB per chunk (fits in uint16)
+    total_chunks = math.ceil(data_size / chunk_size)
+    payload = b"A" * data_size
+
+    # Start UDP receiver (GSL)
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # Increase socket receive buffer size (e.g., 256MB)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 8 * 1024 * 1024)
+    s.bind((gcom_udp_ip, gcom_udp_port))
+    s.settimeout(10)
+    received_bytes = 0
+    received_chunks = 0
+    start_time = time.time()
+
+    def udp_receiver():
+        nonlocal received_bytes, received_chunks
+        try:
+            while received_bytes < data_size:
+                data, addr = s.recvfrom(UDP_MTU)
+                received_bytes += len(data)
+                received_chunks += 1
+        except socket.timeout:
+            pass
+
+    recv_thread = threading.Thread(target=udp_receiver)
+    recv_thread.start()
+    time.sleep(0.5)  # Give receiver time to bind
+
+    # Send data via UDS in chunks
+    for i in range(total_chunks):
+        chunk = payload[i * chunk_size : (i + 1) * chunk_size]
+        opcode = 42
+        error = 0
+        seq_id = i + 1
+        length = len(chunk)
+        header = struct.pack("<BBHH", opcode, error, seq_id, length)
+        msg = header + chunk
+        send_uds_to_fcom(uds_server_path, msg)
+
+    recv_thread.join(timeout=15)
+    s.close()
+    elapsed = time.time() - start_time
+    mbps = (received_bytes * 8) / (elapsed * 1e6)
+    loss = data_size - received_bytes
+    print(
+        f"Received {received_bytes} bytes in {elapsed:.2f}s, {mbps:.2f} Mbps, {received_chunks} chunks"
+    )
+    if loss > chunk_size:
+        print(f"ERROR: Lost {loss} bytes (>{chunk_size} bytes, more than one chunk)")
+        assert False, f"Significant data loss: {received_bytes} < {data_size}"
+    elif loss > 0:
+        print(f"WARNING: Lost {loss} bytes (<={chunk_size} bytes, likely 1 chunk lost)")
+    assert mbps >= 1000, f"Rate too low: {mbps:.2f} Mbps < 1000 Mbps"
+
+
 def main():
     print("--- Integration Test: UDP to UDS ---")
     test_udp_to_uds()
     print("--- Integration Test: UDS to UDP ---")
     test_uds_to_udp()
+    print("--- Integration Test: UDS to UDP High Rate ---")
+    test_uds_to_udp_high_rate()
     print("All integration tests passed.")
 
 

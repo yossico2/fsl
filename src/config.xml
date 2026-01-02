@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
     <logging>
-        <level>INFO</level>
+        <level>DEBUG</level>
     </logging>
     <!-- sensor id -->
     <sensor_id>1</sensor_id>
@@ -19,28 +19,28 @@
         <!-- for downlink: fsl is server -->
         <server name="DL_EL_H">
             <path>/tmp/DL_EL_H</path>
+            <receive_buffer_size>8388608</receive_buffer_size>
+        </server>
+        <server name="DL_EL_L">
+            <path>/tmp/DL_EL_L</path>
             <receive_buffer_size>65500</receive_buffer_size>
         </server>
-            <server name="DL_EL_L">
-                <path>/tmp/DL_EL_L</path>
-                <receive_buffer_size>65500</receive_buffer_size>
-            </server>
-            <server name="DL_PLMG_H">
-                <path>/tmp/DL_PLMG_H</path>
-                <receive_buffer_size>65500</receive_buffer_size>
-            </server>
-            <server name="DL_PLMG_L">
-                <path>/tmp/DL_PLMG_L</path>
-                <receive_buffer_size>65500</receive_buffer_size>
-            </server>
-            <server name="FSW_HIGH_DL">
-                <path>/tmp/FSW_HIGH_DL</path>
-                <receive_buffer_size>65500</receive_buffer_size>
-            </server>
-            <server name="FSW_LOW_DL">
-                <path>/tmp/FSW_LOW_DL</path>
-                <receive_buffer_size>65500</receive_buffer_size>
-            </server>
+        <server name="DL_PLMG_H">
+            <path>/tmp/DL_PLMG_H</path>
+            <receive_buffer_size>65500</receive_buffer_size>
+        </server>
+        <server name="DL_PLMG_L">
+            <path>/tmp/DL_PLMG_L</path>
+            <receive_buffer_size>65500</receive_buffer_size>
+        </server>
+        <server name="FSW_HIGH_DL">
+            <path>/tmp/FSW_HIGH_DL</path>
+            <receive_buffer_size>65500</receive_buffer_size>
+        </server>
+        <server name="FSW_LOW_DL">
+            <path>/tmp/FSW_LOW_DL</path>
+            <receive_buffer_size>65500</receive_buffer_size>
+        </server>
         <!-- for uplink: fsl is client -->
         <client name="FSW_UL">/tmp/FSW_UL</client>
         <client name="UL_PLMG">/tmp/UL_PLMG</client>
