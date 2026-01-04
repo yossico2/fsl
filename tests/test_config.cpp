@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <fstream>
 #include "catch.hpp"
-#include "sdk/logger.h"
+#include "logger.h"
 #include "test_utils.h"
 #include "../src/config.h"
 

@@ -1,17 +1,27 @@
 # Catch2 test target
-add_executable(tests
+add_executable(
+    tests
     tests/main.cpp
     tests/test_config.cpp
     tests/test_ctrl_status.cpp
     src/app.cpp
-    src/sdk/logger.cpp
     src/config.cpp
-    src/sdk/tinyxml2/tinyxml2.cpp
-    src/sdk/udp.cpp
-    src/sdk/uds.cpp
 )
-target_include_directories(tests PRIVATE tests src src/sdk/tinyxml2)
-target_link_libraries(tests pthread)
+
+target_include_directories(tests PRIVATE tests src $ENV{HOME}/dev/elar/sdk/include)
+
+
+if("${TARGET}" STREQUAL "linux")
+    set(ELAR_ARCH "x86_64")
+elseif("${TARGET}" STREQUAL "petalinux")
+    set(ELAR_ARCH "arm")
+else()
+    message(FATAL_ERROR "Unknown TARGET: ${TARGET}. Use 'linux' or 'petalinux'.")
+endif()
+
+set(LIBSDK_PATH "$ENV{HOME}/dev/elar/sdk/lib/${ELAR_ARCH}/libsdk.a")
+
+target_link_libraries(tests ${LIBSDK_PATH} pthread)
 
 cmake_minimum_required(VERSION 3.10)
 project(fsl)
@@ -35,11 +45,13 @@ else()
     message(STATUS "Compiling for Ubuntu/Linux")
 endif()
 
-
-
-add_executable(fsl src/main.cpp src/app.cpp src/sdk/logger.cpp src/config.cpp src/sdk/tinyxml2/tinyxml2.cpp src/sdk/udp.cpp src/sdk/uds.cpp)
-target_include_directories(fsl PRIVATE src src/sdk/tinyxml2)
-target_link_libraries(fsl pthread)
+add_executable(
+    fsl 
+    src/main.cpp 
+    src/app.cpp 
+    src/config.cpp)
+target_include_directories(fsl PRIVATE src $ENV{HOME}/dev/elar/sdk/include)
+target_link_libraries(fsl ${LIBSDK_PATH} pthread)
 
 # Add include directories
 include_directories(src)

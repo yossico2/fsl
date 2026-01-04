@@ -2,7 +2,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <cstdlib>
-#include "sdk/tinyxml2/tinyxml2.h"
+#include "tinyxml2.h"
 #include "instance_utils.h"
 
 using namespace tinyxml2;

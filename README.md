@@ -201,9 +201,6 @@ Replace `<path-to-petalinux-gcc>` and `<path-to-petalinux-g++>` with the actual 
 - `src/main.cpp`: Application entry point
 - `src/app.cpp`, `src/app.h`: Main application logic
 - `src/config.cpp`, `src/config.h`: XML configuration parser
-- `src/sdk/logger.cpp`, `src/logger.h`: Logging utilities
-- `src/sdk/udp.cpp`, `src/sdk/udp.h`: UDP socket handling
-- `src/sdk/uds.cpp`, `src/sdk/uds.h`: Unix Domain Socket handling
 - `src/config.xml`: configuration file
 ```
 

@@ -33,7 +33,7 @@
 
 #include "icd/fsl.h"
 #include "icd/fcom.h"
-#include "sdk/logger.h"
+#include "logger.h"
 
 // Helper for UL_Destination enum to string
 static const std::unordered_map<uint16_t, const char *> UL_DestinationNames = {

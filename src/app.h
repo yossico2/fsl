@@ -9,8 +9,8 @@ friend struct AppTestFriend;
 #include <map>
 #include <memory>
 #include "config.h"
-#include "sdk/uds.h"
-#include "sdk/udp.h"
+#include "uds.h"
+#include "udp.h"
 #include <queue>
 #include <mutex>
 #include <condition_variable>
