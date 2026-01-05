@@ -169,12 +169,17 @@ def test_dl_uds_to_udp_high_rate():
     s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 256 * 1024 * 1024)
     s.bind((gcom_udp_ip, gcom_udp_port))
     s.settimeout(10)
+
     received_bytes = 0
     received_chunks = 0
     start_time = time.time()
 
+    # Synchronization event to ensure receiver is ready
+    receiver_ready = threading.Event()
+
     def udp_receiver():
         nonlocal received_bytes, received_chunks
+        receiver_ready.set()  # Signal that receiver is ready
         try:
             while received_bytes < data_size:
                 data, addr = s.recvfrom(UDP_MTU)
@@ -185,7 +190,7 @@ def test_dl_uds_to_udp_high_rate():
 
     recv_thread = threading.Thread(target=udp_receiver)
     recv_thread.start()
-    time.sleep(0.5)  # Give receiver time to bind
+    receiver_ready.wait()  # Wait until receiver signals readiness
 
     # Send data via UDS in chunks
     init_uds_path(uds_server_path)
