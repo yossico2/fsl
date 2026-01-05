@@ -785,9 +785,12 @@ int App::udp_send_with_retry(const void *buffer, size_t len, int max_retries)
         int ret = udp_.send(buffer, len);
         if (ret >= 0)
             return ret;
+        // Add 1ms sleep between attempts to reduce burstiness
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
         if (attempt < max_retries - 1)
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            // Optionally, keep the original 100ms sleep for longer retries if needed
+            // std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
     Logger::error("UDP send failed after retries");
