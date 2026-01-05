@@ -15,7 +15,7 @@ GSL_FSL_HEADER_SIZE = struct.calcsize("<HHII")
 UDP_MTU = 65500
 
 
-def send_udp_to_fcom(opcode, payload, udp_ip, udp_port, sensor_id=0):
+def send_udp_to_fsl(opcode, payload, udp_ip, udp_port, sensor_id=0):
     """Simulate GSL: Send UDP packet to FSL with header and payload."""
     # GslFslHeader: opcode (uint16), sensor_id (uint16), length (uint32), seq_id (uint32)
     msg_seq_id = 1
@@ -26,48 +26,43 @@ def send_udp_to_fcom(opcode, payload, udp_ip, udp_port, sensor_id=0):
     s.close()
 
 
-def send_uds_to_fcom(uds_path, payload):
-    """Simulate app: Send payload (bytes) to FSL UDS server socket."""
-    # Ensure parent directory exists if STATEFULSET_INDEX is set
+def init_uds_path(uds_path):
+    """Ensure UDS path's parent directory exists."""
     instance = os.environ.get("STATEFULSET_INDEX")
     if instance:
         parent = os.path.dirname(uds_path)
         if not os.path.exists(parent):
             os.makedirs(parent, exist_ok=True)
+
+
+def send_uds_to_fsl(uds_path, payload):
+    """Simulate app: Send payload (bytes) to FSL UDS server socket."""
     s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
     s.sendto(payload, uds_path)
     s.close()
 
 
-def receive_uds(uds_path, timeout=2):
+def uds_receiver_thread(uds_path, result_container):
     """Simulate app: Receive from FSL UDS client socket."""
-    # Ensure parent directory exists if STATEFULSET_INDEX is set
-    instance = os.environ.get("STATEFULSET_INDEX")
-    if instance:
-        parent = os.path.dirname(uds_path)
-        if not os.path.exists(parent):
-            os.makedirs(parent, exist_ok=True)
+    init_uds_path(uds_path)
     if os.path.exists(uds_path):
         os.unlink(uds_path)
+
+    timeout = 2
     s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
     s.bind(uds_path)
     s.settimeout(timeout)
     try:
         data, _ = s.recvfrom(UDP_MTU)
-        return data
-    except socket.timeout:
-        return None
+        result_container.append(data)
+    except socket.timeout as error:
+        print(f"Socket timeout error: {error}")
     finally:
         s.close()
         os.unlink(uds_path)
 
 
-def uds_receiver_thread(uds_path, result_container):
-    data = receive_uds(uds_path)
-    result_container.append(data)
-
-
-def test_udp_to_uds():
+def test_ul_udp_to_uds():
     """Test: GSL sends UDP, FSL routes to correct UDS client."""
     fsl_udp_ip = "127.0.0.1"
     fsl_udp_port = 9910
@@ -87,7 +82,7 @@ def test_udp_to_uds():
         t.start()
         time.sleep(0.5)  # Give receiver time to bind
         print(f"Uplink: sending UDP to FSL for {uds_client_path}...")
-        send_udp_to_fcom(opcode, payload, fsl_udp_ip, fsl_udp_port)
+        send_udp_to_fsl(opcode, payload, fsl_udp_ip, fsl_udp_port)
         t.join()
         received = result[0] if result else None
         assert (
@@ -96,7 +91,7 @@ def test_udp_to_uds():
         print(f"Uplink: received on {uds_client_path}:", received)
 
 
-def test_uds_to_udp():
+def test_dl_uds_to_udp():
     """Test: App sends to UDS server, FSL routes to UDP (GSL)."""
     gcom_udp_ip = "127.0.0.1"
     gcom_udp_port = 9010
@@ -130,7 +125,8 @@ def test_uds_to_udp():
         else:
             msg = payload
 
-        send_uds_to_fcom(uds_server_path, msg)
+        init_uds_path(uds_server_path)
+        send_uds_to_fsl(uds_server_path, msg)
         print("Downlink: receiving message from UDP...")
 
         try:
@@ -153,7 +149,7 @@ def test_uds_to_udp():
             s.close()
 
 
-def test_uds_to_udp_high_rate():
+def test_dl_uds_to_udp_high_rate():
     """Test: DL_EL_H UDS can handle high-rate download (>=1Gbps) via FSL to UDP."""
     import math
 
@@ -192,6 +188,7 @@ def test_uds_to_udp_high_rate():
     time.sleep(0.5)  # Give receiver time to bind
 
     # Send data via UDS in chunks
+    init_uds_path(uds_server_path)
     for i in range(total_chunks):
         chunk = payload[i * chunk_size : (i + 1) * chunk_size]
         opcode = 42
@@ -200,7 +197,7 @@ def test_uds_to_udp_high_rate():
         length = len(chunk)
         header = struct.pack("<BBHH", opcode, error, seq_id, length)
         msg = header + chunk
-        send_uds_to_fcom(uds_server_path, msg)
+        send_uds_to_fsl(uds_server_path, msg)
 
     recv_thread.join(timeout=15)
     s.close()
@@ -220,11 +217,11 @@ def test_uds_to_udp_high_rate():
 
 def main():
     print("--- Integration Test: UDP to UDS ---")
-    test_udp_to_uds()
+    test_ul_udp_to_uds()
     print("--- Integration Test: UDS to UDP ---")
-    test_uds_to_udp()
+    test_dl_uds_to_udp()
     print("--- Integration Test: UDS to UDP High Rate ---")
-    test_uds_to_udp_high_rate()
+    test_dl_uds_to_udp_high_rate()
     print("All integration tests passed.")
 
 

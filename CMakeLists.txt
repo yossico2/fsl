@@ -1,4 +1,13 @@
-# Catch2 test target
+
+if(COMMAND cmake_policy)
+    cmake_policy(SET CMP0003 NEW)
+endif()
+
+# Set default TARGET to linux if not defined (use CACHE to ensure global visibility)
+if(NOT DEFINED TARGET OR "${TARGET}" STREQUAL "" OR "${TARGET}" STREQUAL ".")
+    set(TARGET "linux" CACHE STRING "Target platform (linux or petalinux)")
+endif()
+
 add_executable(
     tests
     tests/main.cpp
@@ -9,7 +18,6 @@ add_executable(
 )
 
 target_include_directories(tests PRIVATE tests src $ENV{HOME}/dev/elar/sdk/include)
-
 
 if("${TARGET}" STREQUAL "linux")
     set(ELAR_ARCH "x86_64")
@@ -22,6 +30,7 @@ endif()
 set(LIBSDK_PATH "$ENV{HOME}/dev/elar/sdk/lib/${ELAR_ARCH}/libsdk.a")
 
 target_link_libraries(tests ${LIBSDK_PATH} pthread)
+
 
 cmake_minimum_required(VERSION 3.10)
 project(fsl)
