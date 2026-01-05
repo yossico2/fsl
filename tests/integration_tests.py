@@ -35,11 +35,27 @@ def init_uds_path(uds_path):
             os.makedirs(parent, exist_ok=True)
 
 
-def send_uds_to_fsl(uds_path, payload):
-    """Simulate app: Send payload (bytes) to FSL UDS server socket."""
-    s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-    s.sendto(payload, uds_path)
-    s.close()
+def send_uds_to_fsl(uds_path, payload, sock):
+    """Simulate app: Send payload (bytes) to FSL UDS server socket. Requires a socket. Retries on WOULD_BLOCK."""
+    import errno
+
+    max_retries = 10
+    for attempt in range(max_retries):
+        try:
+            sock.sendto(payload, uds_path)
+            return
+        except OSError as e:
+            if e.errno in (errno.EAGAIN, errno.EWOULDBLOCK):
+                if attempt < max_retries - 1:
+                    time.sleep(0.1)
+                    continue
+                else:
+                    print(
+                        f"[ERROR] send_uds_to_fsl: Buffer full after {max_retries} retries, giving up."
+                    )
+                    raise
+            else:
+                raise
 
 
 def uds_receiver_thread(uds_path, result_container):
@@ -104,49 +120,53 @@ def test_dl_uds_to_udp():
         # Add more app UDS paths as needed
     ]
 
-    for i, uds_server_path in enumerate(app_uds_paths, start=1):
-        payload = f"hello from app{i}".encode()
+    uds_sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+    try:
+        for i, uds_server_path in enumerate(app_uds_paths, start=1):
+            payload = f"hello from app{i}".encode()
 
-        # Start UDP receiver (GSL)
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.bind((gcom_udp_ip, gcom_udp_port))
-        s.settimeout(2)
-        print(f"Downlink: sending message to UDS server {uds_server_path}...")
+            # Start UDP receiver (GSL)
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.bind((gcom_udp_ip, gcom_udp_port))
+            s.settimeout(2)
+            print(f"Downlink: sending message to UDS server {uds_server_path}...")
 
-        # Compose message: FSW sends only payload, PLMG/EL send plmg_fcom_header + payload
-        if "PLMG" in uds_server_path or "EL" in uds_server_path:
-            # plmg_fcom_header: opcode (uint8), error (uint8), seq_id (uint16), length (uint16)
-            opcode = 42  # test opcode
-            error = 0
-            seq_id = 1
-            length = len(payload)
-            header = struct.pack("<BBHH", opcode, error, seq_id, length)
-            msg = header + payload
-        else:
-            msg = payload
+            # Compose message: FSW sends only payload, PLMG/EL send plmg_fcom_header + payload
+            if "PLMG" in uds_server_path or "EL" in uds_server_path:
+                # plmg_fcom_header: opcode (uint8), error (uint8), seq_id (uint16), length (uint16)
+                opcode = 42  # test opcode
+                error = 0
+                seq_id = 1
+                length = len(payload)
+                header = struct.pack("<BBHH", opcode, error, seq_id, length)
+                msg = header + payload
+            else:
+                msg = payload
 
-        init_uds_path(uds_server_path)
-        send_uds_to_fsl(uds_server_path, msg)
-        print("Downlink: receiving message from UDP...")
+            init_uds_path(uds_server_path)
+            send_uds_to_fsl(uds_server_path, msg, uds_sock)
+            print("Downlink: receiving message from UDP...")
 
-        try:
-            data, addr = s.recvfrom(UDP_MTU)
-            print("Downlink: received message from UDP:", data)
-            assert data is not None, f"No UDP data received for {uds_server_path}"
-            # Parse GslFslHeader: opcode (uint16), sensor_id (uint16), length (uint32), seq_id (uint32), all little-endian
-            if data and len(data) >= GSL_FSL_HEADER_SIZE:
-                # GslFslHeader: opcode (2 bytes), sensor_id (2 bytes), length (4 bytes), seq_id (4 bytes)
-                opcode, sensor_id, length, seq_id = struct.unpack(
-                    "<HHII", data[:GSL_FSL_HEADER_SIZE]
-                )
-                print(
-                    f"GslFslHeader: opcode={opcode}, sensor_id={sensor_id}, length={length}, seq_id={seq_id}"
-                )
-        except socket.timeout:
-            print(f"No UDP data received for {uds_server_path}")
-            assert False, f"No UDP data received for {uds_server_path}"
-        finally:
-            s.close()
+            try:
+                data, addr = s.recvfrom(UDP_MTU)
+                print("Downlink: received message from UDP:", data)
+                assert data is not None, f"No UDP data received for {uds_server_path}"
+                # Parse GslFslHeader: opcode (uint16), sensor_id (uint16), length (uint32), seq_id (uint32), all little-endian
+                if data and len(data) >= GSL_FSL_HEADER_SIZE:
+                    # GslFslHeader: opcode (2 bytes), sensor_id (2 bytes), length (4 bytes), seq_id (4 bytes)
+                    opcode, sensor_id, length, seq_id = struct.unpack(
+                        "<HHII", data[:GSL_FSL_HEADER_SIZE]
+                    )
+                    print(
+                        f"GslFslHeader: opcode={opcode}, sensor_id={sensor_id}, length={length}, seq_id={seq_id}"
+                    )
+            except socket.timeout:
+                print(f"No UDP data received for {uds_server_path}")
+                assert False, f"No UDP data received for {uds_server_path}"
+            finally:
+                s.close()
+    finally:
+        uds_sock.close()
 
 
 def test_dl_uds_to_udp_high_rate():
@@ -192,17 +212,21 @@ def test_dl_uds_to_udp_high_rate():
     recv_thread.start()
     receiver_ready.wait()  # Wait until receiver signals readiness
 
-    # Send data via UDS in chunks
+    # Send data via UDS in chunks using a single socket
     init_uds_path(uds_server_path)
-    for i in range(total_chunks):
-        chunk = payload[i * chunk_size : (i + 1) * chunk_size]
-        opcode = 42
-        error = 0
-        seq_id = i + 1
-        length = len(chunk)
-        header = struct.pack("<BBHH", opcode, error, seq_id, length)
-        msg = header + chunk
-        send_uds_to_fsl(uds_server_path, msg)
+    uds_sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+    try:
+        for i in range(total_chunks):
+            chunk = payload[i * chunk_size : (i + 1) * chunk_size]
+            opcode = 42
+            error = 0
+            seq_id = i + 1
+            length = len(chunk)
+            header = struct.pack("<BBHH", opcode, error, seq_id, length)
+            msg = header + chunk
+            send_uds_to_fsl(uds_server_path, msg, uds_sock)
+    finally:
+        uds_sock.close()
 
     recv_thread.join(timeout=15)
     s.close()
