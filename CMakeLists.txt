@@ -8,16 +8,21 @@ if(NOT DEFINED TARGET OR "${TARGET}" STREQUAL "" OR "${TARGET}" STREQUAL ".")
     set(TARGET "linux" CACHE STRING "Target platform (linux or petalinux)")
 endif()
 
-add_executable(
-    tests
+set(TESTS_SOURCES
     tests/main.cpp
     tests/test_config.cpp
     tests/test_ctrl_status.cpp
     src/app.cpp
     src/config.cpp
+    src/sdk/tinyxml2/tinyxml2.cpp
+    src/sdk/logger.cpp
+    src/sdk/udp.cpp
+    src/sdk/uds.cpp
 )
+add_executable(tests ${TESTS_SOURCES})
 
-target_include_directories(tests PRIVATE tests src $ENV{HOME}/dev/elar/sdk/include)
+# target_include_directories(tests PRIVATE tests src $ENV{HOME}/dev/elar/sdk/include)
+target_include_directories(tests PRIVATE tests src src/sdk src/sdk/nlohmann src/sdk/tinyxml2)
 
 if("${TARGET}" STREQUAL "linux")
     set(ELAR_ARCH "x86_64")
@@ -27,10 +32,9 @@ else()
     message(FATAL_ERROR "Unknown TARGET: ${TARGET}. Use 'linux' or 'petalinux'.")
 endif()
 
-set(LIBSDK_PATH "$ENV{HOME}/dev/elar/sdk/lib/${ELAR_ARCH}/libsdk.a")
-
-target_link_libraries(tests ${LIBSDK_PATH} pthread)
-
+# set(LIBSDK_PATH "$ENV{HOME}/dev/elar/sdk/lib/${ELAR_ARCH}/libsdk.a")
+# target_link_libraries(tests ${LIBSDK_PATH} pthread)
+target_link_libraries(tests pthread)
 
 cmake_minimum_required(VERSION 3.10)
 project(fsl)
@@ -54,13 +58,21 @@ else()
     message(STATUS "Compiling for Ubuntu/Linux")
 endif()
 
-add_executable(
-    fsl 
+set(APP_SOURCES
     src/main.cpp 
     src/app.cpp 
-    src/config.cpp)
-target_include_directories(fsl PRIVATE src $ENV{HOME}/dev/elar/sdk/include)
-target_link_libraries(fsl ${LIBSDK_PATH} pthread)
+    src/config.cpp
+    src/sdk/tinyxml2/tinyxml2.cpp
+    src/sdk/logger.cpp
+    src/sdk/udp.cpp
+    src/sdk/uds.cpp
+)
+
+add_executable(fsl ${APP_SOURCES})
+# target_include_directories(fsl PRIVATE src $ENV{HOME}/dev/elar/sdk/include)
+# target_link_libraries(fsl ${LIBSDK_PATH} pthread)
+target_include_directories(fsl PRIVATE src src/sdk src/sdk/nlohmann src/sdk/tinyxml2)
+target_link_libraries(fsl pthread)
 
 # Add include directories
 include_directories(src)
