@@ -1,3 +1,5 @@
+#include <chrono>
+#include <thread>
 // app.cpp - Implementation of the FSL Application
 //
 // This file implements the App class, which manages UDP and UDS sockets for routing
@@ -692,7 +694,7 @@ int App::processFSWDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter
 
     memcpy(buffer, &hdr, GSL_FSL_HEADER_SIZE);
     memcpy(buffer + GSL_FSL_HEADER_SIZE, data.data(), data.size());
-    return udp_.send(buffer, data.size() + GSL_FSL_HEADER_SIZE);
+    return udp_send_with_retry(buffer, data.size() + GSL_FSL_HEADER_SIZE);
 }
 
 // Returns number of bytes sent, or <0 on error
@@ -732,7 +734,7 @@ int App::processPLMGDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counte
 
     memcpy(buffer, &hdr, GSL_FSL_HEADER_SIZE);
     memcpy(buffer + GSL_FSL_HEADER_SIZE, payload, payload_len);
-    return udp_.send(buffer, payload_len + GSL_FSL_HEADER_SIZE);
+    return udp_send_with_retry(buffer, payload_len + GSL_FSL_HEADER_SIZE);
 }
 
 // Returns number of bytes sent, or <0 on error
@@ -772,5 +774,22 @@ int App::processELDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter)
 
     memcpy(buffer, &hdr, GSL_FSL_HEADER_SIZE);
     memcpy(buffer + GSL_FSL_HEADER_SIZE, payload, payload_len);
-    return udp_.send(buffer, payload_len + GSL_FSL_HEADER_SIZE);
+    return udp_send_with_retry(buffer, payload_len + GSL_FSL_HEADER_SIZE);
+}
+
+// Helper: Retry UDP send N times with 100ms delay on failure (App private member)
+int App::udp_send_with_retry(const void *buffer, size_t len, int max_retries)
+{
+    for (int attempt = 0; attempt < max_retries; ++attempt)
+    {
+        int ret = udp_.send(buffer, len);
+        if (ret >= 0)
+            return ret;
+        if (attempt < max_retries - 1)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+    }
+    Logger::error("UDP send failed after retries");
+    return -1;
 }

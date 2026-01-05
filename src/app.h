@@ -85,6 +85,10 @@ public:
     // Process EL downlink message
     int processELDownlink(std::vector<uint8_t> &data, uint32_t &msg_id_counter);
 
+private:
+    // Helper: Retry UDP send N times with 100ms delay on failure
+    int udp_send_with_retry(const void *buffer, size_t len, int max_retries = 10);
+
 protected:
     AppConfig config_;
     UdpServerSocket udp_;

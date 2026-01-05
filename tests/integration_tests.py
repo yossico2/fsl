@@ -3,16 +3,17 @@ Integration tests for FSL using Python sockets.
 Simulates GSL (UDP client) and two apps (UDS clients/servers).
 """
 
-import socket
 import os
+import math
 import time
 import struct
+import socket
 import threading
 
 # GslFslHeader: opcode (uint16), sensor_id (uint16), length (uint32), seq_id (uint32)
 GSL_FSL_HEADER_SIZE = struct.calcsize("<HHII")
 
-UDP_MTU = 65500
+UDP_MTU = 65000
 
 
 def send_udp_to_fsl(opcode, payload, udp_ip, udp_port, sensor_id=0):
@@ -171,7 +172,6 @@ def test_dl_uds_to_udp():
 
 def test_dl_uds_to_udp_high_rate():
     """Test: DL_EL_H UDS can handle high-rate download (>=1Gbps) via FSL to UDP."""
-    import math
 
     gcom_udp_ip = "127.0.0.1"
     gcom_udp_port = 9010
@@ -179,7 +179,7 @@ def test_dl_uds_to_udp_high_rate():
     prefix = f"/tmp/sensor-{instance}/" if instance >= 0 else "/tmp/"
     uds_server_path = prefix + "DL_EL_H"
     data_size = 100 * 1024 * 1024  # 100MB
-    chunk_size = 60 * 1024  # 60KB per chunk (fits in uint16)
+    chunk_size = UDP_MTU  # 65KB per chunk (fits in uint16)
     total_chunks = math.ceil(data_size / chunk_size)
     payload = b"A" * data_size
 
