@@ -19,7 +19,7 @@
         <!-- for downlink: fsl is server -->
         <server name="DL_EL_H">
             <path>/tmp/DL_EL_H</path>
-            <receive_buffer_size>212992</receive_buffer_size>
+            <receive_buffer_size>425984</receive_buffer_size>
         </server>
         <server name="DL_EL_L">
             <path>/tmp/DL_EL_L</path>

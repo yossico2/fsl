@@ -87,7 +87,7 @@ public:
 
 private:
     // Helper: Retry UDP send N times with 100ms delay on failure
-    int udp_send_with_retry(const void *buffer, size_t len, int max_retries = 1000);
+    int udp_send_with_retry(const void *buffer, size_t len, int max_retries = 100);
 
 protected:
     AppConfig config_;

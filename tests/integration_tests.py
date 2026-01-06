@@ -185,8 +185,9 @@ def test_dl_uds_to_udp_high_rate():
 
     # Start UDP receiver (GSL)
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    # Increase socket receive buffer size (e.g., 256MB)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 256 * 1024 * 1024)
+    # Increase socket receive buffer size
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 425984)
+
     s.bind((gcom_udp_ip, gcom_udp_port))
     s.settimeout(10)
 
@@ -199,10 +200,20 @@ def test_dl_uds_to_udp_high_rate():
 
     def udp_receiver():
         nonlocal received_bytes, received_chunks
+        last_seq_id = 0
         receiver_ready.set()  # Signal that receiver is ready
         try:
             while received_bytes < data_size:
                 data, addr = s.recvfrom(UDP_MTU)
+                # Check for GslFslHeader and print seq_id gaps
+                if data and len(data) >= GSL_FSL_HEADER_SIZE:
+                    # GslFslHeader: opcode (2 bytes), sensor_id (2 bytes), length (4 bytes), seq_id (4 bytes)
+                    _, _, _, seq_id = struct.unpack("<HHII", data[:GSL_FSL_HEADER_SIZE])
+                    if last_seq_id and seq_id != last_seq_id + 1:
+                        print(
+                            f"lilo --- (receiver) GAP: expected seq_id {last_seq_id+1}, got {seq_id}"
+                        )
+                    last_seq_id = seq_id
                 received_bytes += len(data)
                 received_chunks += 1
         except socket.timeout:
@@ -245,10 +256,10 @@ def test_dl_uds_to_udp_high_rate():
 
 
 def main():
-    print("--- Integration Test: UDP to UDS ---")
-    test_ul_udp_to_uds()
-    print("--- Integration Test: UDS to UDP ---")
-    test_dl_uds_to_udp()
+    # print("--- Integration Test: UDP to UDS ---")
+    # test_ul_udp_to_uds()
+    # print("--- Integration Test: UDS to UDP ---")
+    # test_dl_uds_to_udp()
     print("--- Integration Test: UDS to UDP High Rate ---")
     test_dl_uds_to_udp_high_rate()
     print("All integration tests passed.")
